@@ -43,6 +43,7 @@ public:
     ~SpeedTest();
     CURLcode httpGet(const std::string& url, std::ostream& os, CURL *handler = nullptr, long timeout = 30);
     static std::map<std::string, std::string> parseQueryString(const std::string& query);
+    static std::vector<std::string> splitString(const std::string& instr, const char separator);
     bool ipInfo(IPInfo *info);
     const std::vector<ServerInfo>& serverList();
     const ServerInfo bestServer(const int sample_size = 5);

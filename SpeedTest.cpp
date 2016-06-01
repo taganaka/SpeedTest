@@ -6,20 +6,7 @@
 #include "SpeedTest.h"
 #include "SpeedTestClient.h"
 
-std::vector<std::string> splitString(const std::string& instr, const char separator){
-    if (instr.empty())
-        return std::vector<std::string>();
-    std::vector<std::string> tokens;
-    std::size_t start = 0, end = 0;
-    while ((end = instr.find(separator, start)) != std::string::npos) {
-        std::string temp = instr.substr(start, end - start);
-        if (temp != "") tokens.push_back(temp);
-        start = end + 1;
-    }
-    std::string temp = instr.substr(start);
-    if (temp != "") tokens.push_back(temp);
-    return tokens;
-}
+
 
 SpeedTest::SpeedTest() {
     curl_global_init(CURL_GLOBAL_DEFAULT);
@@ -250,6 +237,19 @@ T SpeedTest::harversine(std::pair<T, T> n1, std::pair<T, T> n2) {
     return 2.0 * EARTH_RADIUS_KM * std::asin(std::sqrt(u * u + std::cos(lat1r) * std::cos(lat2r) * v * v));
 }
 
+std::vector<std::string> SpeedTest::splitString(const std::string &instr, const char separator) {
+    if (instr.empty())
+        return std::vector<std::string>();
 
+    std::vector<std::string> tokens;
+    std::size_t start = 0, end = 0;
+    while ((end = instr.find(separator, start)) != std::string::npos) {
+        std::string temp = instr.substr(start, end - start);
+        if (temp != "") tokens.push_back(temp);
+        start = end + 1;
+    }
+    std::string temp = instr.substr(start);
+    if (temp != "") tokens.push_back(temp);
+    return tokens;
 
-
+}

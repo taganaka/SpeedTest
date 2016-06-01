@@ -2,8 +2,9 @@
 #include <map>
 #include "SpeedTest.h"
 #include "SpeedTestClient.h"
-#include <thread>
 #include <mutex>
+#include <thread>
+
 std::mutex mtx;
 int main() {
 
@@ -27,33 +28,49 @@ int main() {
 
     std::cout << "Latency: " << sp.latency() << " ms" << std::endl;
 
+    auto concurrency = std::thread::hardware_concurrency();
+    if (concurrency <= 0)
+        concurrency = 4;
+
+    std::cout << "Testing download speed (" << concurrency << ") "  << std::flush;
     std::vector<std::thread> workers;
     float overall_speed = 0;
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < concurrency; i++) {
         workers.push_back(std::thread([&serverInfo, &overall_speed](){
-
+            std::vector<long> samples = {1000000, 2000000, 3500000, 5000000, 7000000, 10000000};
             auto spClient = SpeedTestClient(serverInfo);
 
             if (spClient.connect()) {
-                std::cout << "Connected to " << serverInfo.host << std::endl;
-                long download_time;
-                if (spClient.download(20000000, &download_time)) {
-                    float speed = ((20000000 * 8) / 1000 / 1000) / (static_cast<float>(download_time) / 1000);
-                    std::cout << "Download complete: " << download_time << " Speed: " << speed << std::endl;
-                    mtx.lock();
-                    overall_speed += speed;
-                    mtx.unlock();
-
+                long total_size = 0;
+                long total_time = 0;
+                for (auto const &s : samples) {
+                    long download_time;
+                    if (spClient.download(s, &download_time)) {
+                        total_size += s;
+                        total_time += download_time;
+                        std::cout << "." << std::flush;
+                    } else {
+                        std::cout << "E" << std::flush;
+                    }
                 }
+                float speed = ((total_size * 8) / 1000 / 1000) / (static_cast<float>(total_time) / 1000);
+                mtx.lock();
+                overall_speed += speed;
+                mtx.unlock();
                 spClient.close();
+
+            } else {
+                std::cout << "E" << std::flush;
             }
+
         }));
     }
 
     std::for_each(workers.begin(), workers.end(),[](std::thread &t){
         t.join();
     });
-    std::cout << "Total speed: " << overall_speed << std::endl;
+    std::cout << std::endl;
+    std::cout << "Download speed: " << overall_speed << " MBit/s" << std::endl;
 
 //    auto spClient = SpeedTestClient(serverInfo);
 //

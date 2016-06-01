@@ -126,11 +126,11 @@ bool SpeedTestClient::download(const long size, long *millisec) {
         return false;
     }
 
-    char buff[8192] = {'\0'};
+    char buff[65536] = {'\0'};
     long missing = 0;
     auto start = now();
     while (missing != size){
-        auto current = read(mSocketFd, &buff, 8192);
+        auto current = read(mSocketFd, &buff, 65536);
 
         if (current <= 0){
 
