@@ -31,7 +31,7 @@ bool SpeedTestClient::connect() {
         return ret;
 
     std::string helo = "HI\n";
-    if (write(mSocketFd, helo.c_str(), helo.size()) != helo.size()){
+    if (write(mSocketFd, helo.c_str(), helo.size()) != (int)helo.size()){
         close();
         return false;
     }
@@ -98,7 +98,7 @@ bool SpeedTestClient::ping(long *millisec) {
     cmd << "PING " << start << "\n";
 
     char buff[200] = {'\0'};
-    if (write(mSocketFd, cmd.str().c_str(), cmd.str().size()) != cmd.str().size()){
+    if (write(mSocketFd, cmd.str().c_str(), cmd.str().size()) != (int)cmd.str().size()){
 
         if (millisec)
             *millisec = -1;
@@ -118,7 +118,7 @@ bool SpeedTestClient::ping(long *millisec) {
 bool SpeedTestClient::download(const long size, long *millisec) {
     std::stringstream cmd;
     cmd << "DOWNLOAD " << size << "\n";
-    if (write(mSocketFd, cmd.str().c_str(), cmd.str().size()) != cmd.str().size()) {
+    if (write(mSocketFd, cmd.str().c_str(), cmd.str().size()) != (int)cmd.str().size()) {
 
         if (millisec)
             *millisec = -1;
