@@ -28,7 +28,7 @@ int main() {
 
     std::vector<std::thread> workers;
     float overall_speed = 0;
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 32; i++) {
         workers.push_back(std::thread([&serverInfo, &overall_speed](){
 
             auto spClient = SpeedTestClient(serverInfo);

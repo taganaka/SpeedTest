@@ -4,7 +4,7 @@
 
 #ifndef SPEEDTEST_SPEEDTEST_H
 #define SPEEDTEST_SPEEDTEST_H
-#include <regex>
+
 #include <map>
 #include <curl/curl.h>
 #include <fstream>
@@ -12,7 +12,7 @@
 #include <iostream>
 #include <libxml/xmlreader.h>
 #include <math.h>
-
+#include <vector>
 
 static const float EARTH_RADIUS_KM = 6371.0;
 

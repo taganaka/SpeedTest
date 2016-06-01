@@ -6,6 +6,20 @@
 #include "SpeedTest.h"
 #include "SpeedTestClient.h"
 
+std::vector<std::string> splitString(const std::string& instr, const char separator){
+    if (instr.empty())
+        return std::vector<std::string>();
+    std::vector<std::string> tokens;
+    std::size_t start = 0, end = 0;
+    while ((end = instr.find(separator, start)) != std::string::npos) {
+        std::string temp = instr.substr(start, end - start);
+        if (temp != "") tokens.push_back(temp);
+        start = end + 1;
+    }
+    std::string temp = instr.substr(start);
+    if (temp != "") tokens.push_back(temp);
+    return tokens;
+}
 
 SpeedTest::SpeedTest() {
     curl_global_init(CURL_GLOBAL_DEFAULT);
@@ -20,14 +34,22 @@ SpeedTest::~SpeedTest() {
 
 std::map<std::string, std::string> SpeedTest::parseQueryString(const std::string &query) {
     auto map = std::map<std::string, std::string>();
-    std::regex pattern("([\\w+%]+)=([^&]*)");
-    auto begin = std::sregex_iterator(query.begin(), query.end(), pattern);
-    auto end = std::sregex_iterator();
-    for (auto i = begin; i != end; i++){
-        std::string key = (*i)[1].str();
-        std::string value = (*i)[2].str();
-        map[key] = value;
+    auto pairs = splitString(query, '&');
+    for (auto &p : pairs){
+        auto kv = splitString(p, '=');
+        if (kv.size() == 2){
+            map[kv[0]] = kv[1];
+        }
     }
+////    auto map = std::map<std::string, std::string>();
+//    std::regex pattern("([\\w+%]+)=([^&]*)");
+//    auto begin = std::sregex_iterator(query.begin(), query.end(), pattern);
+//    auto end = std::sregex_iterator();
+//    for (auto i = begin; i != end; i++){
+//        std::string key = (*i)[1].str();
+//        std::string value = (*i)[2].str();
+//        map[key] = value;
+//    }
     return map;
 }
 
