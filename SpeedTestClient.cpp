@@ -77,9 +77,9 @@ bool SpeedTestClient::mkSocket() {
 
     int portno = std::atoi(port.c_str());
     struct sockaddr_in serv_addr;
-    std::memset(&serv_addr, 0, sizeof(serv_addr));
+    memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    std::memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, (size_t)server->h_length);
+    memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, (size_t)server->h_length);
 
     serv_addr.sin_port = htons(portno);
 
