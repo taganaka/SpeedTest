@@ -41,15 +41,6 @@ std::map<std::string, std::string> SpeedTest::parseQueryString(const std::string
             map[kv[0]] = kv[1];
         }
     }
-////    auto map = std::map<std::string, std::string>();
-//    std::regex pattern("([\\w+%]+)=([^&]*)");
-//    auto begin = std::sregex_iterator(query.begin(), query.end(), pattern);
-//    auto end = std::sregex_iterator();
-//    for (auto i = begin; i != end; i++){
-//        std::string key = (*i)[1].str();
-//        std::string value = (*i)[2].str();
-//        map[key] = value;
-//    }
     return map;
 }
 
@@ -90,10 +81,9 @@ bool SpeedTest::ipInfo(IPInfo *info) {
 
     if (!mIpInfo.ip_address.empty()){
         *info = mIpInfo;
-//        memcpy(info, mIpInfo, sizeof(mIpInfo));
         return true;
     }
-//        return mIpInfo;
+
 
     std::ostringstream oss;
     auto code = httpGet("http://speedtest.ookla.com/api/ipaddress.php", oss);
@@ -159,10 +149,13 @@ const std::vector<ServerInfo>& SpeedTest::serverList() {
     if (cres != CURLE_OK)
         return mServerList;
 
-    auto *c_str = oss.str().c_str();
     size_t len = oss.str().length();
+    char *xmlbuff = (char*)calloc(len + 1, sizeof(char));
+    memcpy(xmlbuff, oss.str().c_str(), len + 1);
+
+    oss.str("");
     oss.clear();
-    xmlTextReaderPtr reader = xmlReaderForMemory(c_str, static_cast<int>(len), nullptr, nullptr, 0);
+    xmlTextReaderPtr reader = xmlReaderForMemory(xmlbuff, static_cast<int>(len), nullptr, nullptr, 0);
 
     if (reader != nullptr) {
         IPInfo ipInfo;
@@ -189,6 +182,7 @@ const std::vector<ServerInfo>& SpeedTest::serverList() {
         std::cerr << "Unable to initialize xml parser" << std::endl;
     }
 
+    free(xmlbuff);
     xmlCleanupParser();
 
     std::sort(mServerList.begin(), mServerList.end(), [](const ServerInfo &a, const ServerInfo &b) -> bool {
