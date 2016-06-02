@@ -255,10 +255,16 @@ float SpeedTest::execute(const ServerInfo &server, const TestConfig &config, con
                 spClient.close();
                 std::sort(partial_results.begin(), partial_results.end());
 
-                auto skip = partial_results.size() / 4;
+                auto skip = 0;
+                auto drop = 0;
+                if (partial_results.size() >= 10){
+                    skip = partial_results.size() / 4;
+                    drop = 2;
+                }
+
                 size_t iter = 0;
                 float real_sum = 0;
-                for (auto it = partial_results.begin() + skip; it != partial_results.end()-2; ++it ){
+                for (auto it = partial_results.begin() + skip; it != partial_results.end() - drop; ++it ){
                     iter++;
                     real_sum += (*it);
                 }

@@ -83,7 +83,7 @@ bool SpeedTestClient::mkSocket() {
 
     serv_addr.sin_port = htons(portno);
 
-    /* Now connect to the server */
+    /* Dial */
     if (::connect(mSocketFd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
         perror("::connect");
         std::cerr << "ERROR connecting" << std::endl;
@@ -130,13 +130,12 @@ bool SpeedTestClient::download(const long size, const long chunk_size, long &mil
     long missing = 0;
     auto start = now();
     while (missing != size){
-        auto current = read(mSocketFd, &buff, chunk_size);
+        auto current = read(mSocketFd, &buff, static_cast<size_t>(chunk_size));
 
         if (current <= 0){
             return false;
         }
         missing += current;
-
     }
 
     auto stop = now();
@@ -150,7 +149,7 @@ bool SpeedTestClient::upload(const long size, const long chunk_size, long &milli
 
     char buff[chunk_size];
     for(size_t i = 0; i < chunk_size; i++)
-        buff[i] = rand() % 256;
+        buff[i] = static_cast<char>(rand() % 256);
 
     long missing = size;
     auto start = now();
@@ -162,14 +161,14 @@ bool SpeedTestClient::upload(const long size, const long chunk_size, long &milli
 
     while(missing > 0){
         if (missing - chunk_size > 0){
-            auto w = write(mSocketFd, &buff, chunk_size);
+            w = write(mSocketFd, &buff, static_cast<size_t>(chunk_size));
             if (w != chunk_size){
                 return false;
             }
             missing -= w;
         } else {
             buff[missing - 1] = '\n';
-            auto w = write(mSocketFd, &buff, missing);
+            w = write(mSocketFd, &buff, static_cast<size_t>(missing));
             if (w != missing){
                 return false;
             }

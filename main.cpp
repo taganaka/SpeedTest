@@ -1,7 +1,6 @@
 #include <iostream>
 #include <map>
 #include "SpeedTest.h"
-#include "SpeedTestClient.h"
 
 
 int main() {
@@ -21,9 +20,10 @@ int main() {
     std::cout << "Closest: " << serverList[0].name << " (" << serverList[0].distance << " km)" << std::endl;
 
     std::cout << "Finding fastest server..." << std::endl;
-    ServerInfo serverInfo = sp.bestServer(5);
+    ServerInfo serverInfo = sp.bestServer(10);
     std::cout << "Fastest: " << serverInfo.name << " (" << serverInfo.distance << " km)" << std::endl;
 
+    std::cout << std::endl;
     std::cout << "Latency: " << sp.latency() << " ms" << std::endl;
 
     auto concurrency = std::thread::hardware_concurrency();
@@ -41,12 +41,13 @@ int main() {
 
     TestConfig uploadConfig;
     uploadConfig.buff_size = 65536;
-    uploadConfig.concurrency = concurrency / 2;
+    uploadConfig.concurrency = concurrency;
     uploadConfig.start_size = 1000000;
     uploadConfig.incr_size = 250000;
     uploadConfig.min_test_time_ms = 20000;
     uploadConfig.max_size = 70000000;
 
+    std::cout << std::endl;
     std::cout << "Testing download speed (" << downloadConfig.concurrency << ") "  << std::flush;
     auto downloadSpeed = sp.downloadSpeed(serverInfo, downloadConfig);
 
@@ -59,6 +60,6 @@ int main() {
     std::cout << std::endl;
     std::cout << "Upload speed: " << uploadSpeed << " MBit/s" << std::endl;
     std::cout << std::endl;
-    
+
     return 0;
 }
