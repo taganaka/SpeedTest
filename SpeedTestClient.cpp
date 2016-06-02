@@ -81,7 +81,7 @@ bool SpeedTestClient::mkSocket() {
     serv_addr.sin_family = AF_INET;
     memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, (size_t)server->h_length);
 
-    serv_addr.sin_port = htons(portno);
+    serv_addr.sin_port = htons(static_cast<uint16_t>(portno));
 
     /* Dial */
     if (::connect(mSocketFd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
@@ -124,7 +124,7 @@ bool SpeedTestClient::download(const long size, const long chunk_size, long &mil
     }
 
     char buff[chunk_size];
-    for (size_t i = 0; i < chunk_size; i++)
+    for (size_t i = 0; i < static_cast<size_t>(chunk_size); i++)
         buff[i] = '\0';
 
     long missing = 0;
@@ -148,13 +148,13 @@ bool SpeedTestClient::upload(const long size, const long chunk_size, long &milli
     cmd << "UPLOAD " << size << "\n";
 
     char buff[chunk_size];
-    for(size_t i = 0; i < chunk_size; i++)
+    for(size_t i = 0; i < static_cast<size_t>(chunk_size); i++)
         buff[i] = static_cast<char>(rand() % 256);
 
     long missing = size;
     auto start = now();
     auto w = write(mSocketFd, cmd.str().c_str(), cmd.str().size());
-    if (w != cmd.str().size()){
+    if (w != static_cast<ssize_t>(cmd.str().size())){
         return false;
     }
     missing -= w;
