@@ -13,6 +13,7 @@ SpeedTest::SpeedTest() {
     mIpInfo = IPInfo();
     mServerList = std::vector<ServerInfo>();
     mLatency = -1;
+//    mtx = std::mutex();
 }
 
 SpeedTest::~SpeedTest() {
@@ -31,7 +32,7 @@ std::map<std::string, std::string> SpeedTest::parseQueryString(const std::string
     return map;
 }
 
-CURLcode SpeedTest::httpGet(const std::string &url, std::ostream &os, CURL *handler, long timeout) {
+CURLcode SpeedTest::httpGet(const std::string &url, std::stringstream &ss, CURL *handler, long timeout) {
 
     CURLcode code(CURLE_FAILED_INIT);
     CURL* curl = handler == nullptr ? curl_easy_init() : handler;
@@ -40,7 +41,7 @@ CURLcode SpeedTest::httpGet(const std::string &url, std::ostream &os, CURL *hand
         if (CURLE_OK == (code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &writeFunc))
            && CURLE_OK == (code = curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L))
            && CURLE_OK == (code = curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L))
-           && CURLE_OK == (code = curl_easy_setopt(curl, CURLOPT_FILE, &os))
+           && CURLE_OK == (code = curl_easy_setopt(curl, CURLOPT_FILE, &ss))
            && CURLE_OK == (code = curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout))
            && CURLE_OK == (code = curl_easy_setopt(curl, CURLOPT_URL, url.c_str()))) {
             code = curl_easy_perform(curl);
@@ -54,7 +55,7 @@ CURLcode SpeedTest::httpGet(const std::string &url, std::ostream &os, CURL *hand
 size_t SpeedTest::writeFunc(void *buf, size_t size, size_t nmemb, void *userp) {
 
     if (userp){
-        std::ostream &os = *static_cast<std::ostream *>(userp);
+        std::stringstream &os = *static_cast<std::stringstream *>(userp);
         std::streamsize len = size * nmemb;
         if(os.write(static_cast<char*>(buf), len))
             return  static_cast<size_t>(len);
@@ -71,8 +72,7 @@ bool SpeedTest::ipInfo(IPInfo *info) {
         return true;
     }
 
-
-    std::ostringstream oss;
+    std::stringstream oss;
     auto code = httpGet("http://speedtest.ookla.com/api/ipaddress.php", oss);
     if (code == CURLE_OK){
         auto values = SpeedTest::parseQueryString(oss.str());
@@ -130,7 +130,7 @@ ServerInfo SpeedTest::processServerXMLNode(xmlTextReaderPtr reader) {
 const std::vector<ServerInfo>& SpeedTest::serverList() {
     if (!mServerList.empty())
         return mServerList;
-    std::ostringstream oss;
+    std::stringstream oss;
 
     auto cres = httpGet("http://www.speedtest.net/speedtest-servers-static.php", oss);
     if (cres != CURLE_OK)
@@ -155,8 +155,6 @@ const std::vector<ServerInfo>& SpeedTest::serverList() {
             ServerInfo info = processServerXMLNode(reader);
             if (!info.url.empty()){
                 info.distance = harversine(std::make_pair(ipInfo.lat, ipInfo.lon), std::make_pair(info.lat, info.lon));
-                std::size_t found = info.url.find_last_of("/");
-                info.latency_url = info.url.substr(0, found) + "/latency.txt";
                 mServerList.push_back(info);
             }
             ret = xmlTextReaderRead(reader);
@@ -210,11 +208,78 @@ const ServerInfo SpeedTest::bestServer(const int sample_size) {
     return bestServer;
 }
 
-const double SpeedTest::downloadSpeed(const ServerInfo &server) {
-    std::vector<int> sizes = {350, 500, 750, 1000, 1500, 2000, 2500, 3000, 3500, 4000};
-
-    return 0;
+const float SpeedTest::downloadSpeed(const ServerInfo &server, const TestConfig &config) {
+    opFn pfunc = &SpeedTestClient::download;
+    return execute(server, config, pfunc);
 }
+
+const float SpeedTest::uploadSpeed(const ServerInfo &server, const TestConfig &config) {
+    opFn pfunc = &SpeedTestClient::upload;
+    return execute(server, config, pfunc);
+}
+
+float SpeedTest::execute(const ServerInfo &server, const TestConfig &config, const opFn &pfunc) {
+    std::vector<std::thread> workers;
+    float overall_speed = 0;
+    std::mutex mtx;
+    for (size_t i = 0; i < config.concurrency; i++) {
+        workers.push_back(std::thread([&server, &overall_speed, &pfunc, &config, &mtx](){
+            long start_size = config.start_size;
+            long max_size   = config.max_size;
+            long incr_size  = config.incr_size;
+            long curr_size  = start_size;
+
+            auto spClient = SpeedTestClient(server);
+
+            if (spClient.connect()) {
+                long total_size = 0;
+                long total_time = 0;
+                auto start = SpeedTestClient::now();
+                std::vector<float> partial_results;
+                while (curr_size < max_size){
+                    long op_time = 0;
+//                    if (spClient.download(curr_size, config.buff_size, op_time)) {
+                    if ((spClient.*pfunc)(curr_size, config.buff_size, op_time)) {
+                        total_size += curr_size;
+                        total_time += op_time;
+                        partial_results.push_back(((static_cast<float>(curr_size * 8)) / 1000 / 1000) / (static_cast<float>(op_time) / 1000));
+                        std::cout << "." << std::flush;
+                    } else {
+                        std::cout << "E" << std::flush;
+                    }
+                    curr_size += incr_size;
+                    if ((SpeedTestClient::now() - start) > config.min_test_time_ms )
+                        break;
+                }
+
+                spClient.close();
+                std::sort(partial_results.begin(), partial_results.end());
+
+                auto skip = partial_results.size() / 4;
+                size_t iter = 0;
+                float real_sum = 0;
+                for (auto it = partial_results.begin() + skip; it != partial_results.end()-2; ++it ){
+                    iter++;
+                    real_sum += (*it);
+                }
+                mtx.lock();
+                overall_speed += (real_sum / iter);
+                mtx.unlock();
+            } else {
+                std::cout << "E" << std::flush;
+            }
+        }));
+
+    }
+    for (auto &t : workers){
+        t.join();
+    }
+
+    workers.clear();
+
+    return overall_speed;
+}
+
 
 const double &SpeedTest::latency() {
     return mLatency;
@@ -253,3 +318,5 @@ std::vector<std::string> SpeedTest::splitString(const std::string &instr, const 
     return tokens;
 
 }
+
+

@@ -6,7 +6,6 @@
 #define SPEEDTEST_SPEEDTESTCLIENT_H
 
 
-#include "SpeedTest.h"
 #include <ctime>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -15,6 +14,8 @@
 #include <unistd.h>
 #include <chrono>
 #include <unistd.h>
+#include "SpeedTest.h"
+
 class SpeedTestClient {
 public:
     SpeedTestClient(const ServerInfo& serverInfo);
@@ -22,16 +23,16 @@ public:
 
     bool connect();
     bool ping(long *millisec);
-    bool upload(const long size);
-    bool download(const long size, long *millisec);
+    bool upload(const long size, const long chunk_size, long &millisec);
+    bool download(const long size, const long chunk_size, long &millisec);
     void close();
+    static std::time_t now();
 
 private:
-    std::time_t now();
     bool mkSocket();
     ServerInfo mServerInfo;
     int mSocketFd;
 };
 
-
+typedef bool (SpeedTestClient::*opFn)(const long size, const long chunk_size, long &millisec);
 #endif //SPEEDTEST_SPEEDTESTCLIENT_H

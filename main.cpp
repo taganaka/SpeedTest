@@ -2,10 +2,8 @@
 #include <map>
 #include "SpeedTest.h"
 #include "SpeedTestClient.h"
-#include <mutex>
-#include <thread>
 
-std::mutex mtx;
+
 int main() {
 
     auto sp = SpeedTest();
@@ -32,57 +30,35 @@ int main() {
     if (concurrency <= 0)
         concurrency = 4;
 
-    std::cout << "Testing download speed (" << concurrency << ") "  << std::flush;
-    std::vector<std::thread> workers;
-    float overall_speed = 0;
-    for (int i = 0; i < concurrency; i++) {
-        workers.push_back(std::thread([&serverInfo, &overall_speed](){
-            std::vector<long> samples = {1000000, 2000000, 3500000, 5000000, 7000000, 10000000};
-            auto spClient = SpeedTestClient(serverInfo);
+    TestConfig downloadConfig;
+    downloadConfig.buff_size = 65536;
+    downloadConfig.concurrency = concurrency;
+    downloadConfig.start_size = 1000000;
+    downloadConfig.incr_size = 750000;
+    downloadConfig.min_test_time_ms = 20000;
+    downloadConfig.max_size = 100000000;
 
-            if (spClient.connect()) {
-                long total_size = 0;
-                long total_time = 0;
-                for (auto const &s : samples) {
-                    long download_time;
-                    if (spClient.download(s, &download_time)) {
-                        total_size += s;
-                        total_time += download_time;
-                        std::cout << "." << std::flush;
-                    } else {
-                        std::cout << "E" << std::flush;
-                    }
-                }
-                float speed = ((total_size * 8) / 1000 / 1000) / (static_cast<float>(total_time) / 1000);
-                mtx.lock();
-                overall_speed += speed;
-                mtx.unlock();
-                spClient.close();
 
-            } else {
-                std::cout << "E" << std::flush;
-            }
+    TestConfig uploadConfig;
+    uploadConfig.buff_size = 65536;
+    uploadConfig.concurrency = concurrency / 2;
+    uploadConfig.start_size = 1000000;
+    uploadConfig.incr_size = 250000;
+    uploadConfig.min_test_time_ms = 20000;
+    uploadConfig.max_size = 70000000;
 
-        }));
-    }
+    std::cout << "Testing download speed (" << downloadConfig.concurrency << ") "  << std::flush;
+    auto downloadSpeed = sp.downloadSpeed(serverInfo, downloadConfig);
 
-    std::for_each(workers.begin(), workers.end(),[](std::thread &t){
-        t.join();
-    });
     std::cout << std::endl;
-    std::cout << "Download speed: " << overall_speed << " MBit/s" << std::endl;
+    std::cout << "Download speed: " << downloadSpeed << " MBit/s" << std::endl;
+    std::cout << std::endl;
 
-//    auto spClient = SpeedTestClient(serverInfo);
-//
-//    if (spClient.connect()){
-//        std::cout << "Connected to " << serverInfo.host << std::endl;
-//        long download_time;
-//        if (spClient.download(50000000, &download_time)){
-//            std::cout << "Download complete: " << download_time << std::endl;
-//
-//        }
-//
-//        spClient.close();
-//    }
+    std::cout << "Testing upload speed (" << uploadConfig.concurrency << ") "  << std::flush;
+    auto uploadSpeed = sp.uploadSpeed(serverInfo, uploadConfig);
+    std::cout << std::endl;
+    std::cout << "Upload speed: " << uploadSpeed << " MBit/s" << std::endl;
+    std::cout << std::endl;
+    
     return 0;
 }

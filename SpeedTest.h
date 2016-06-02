@@ -14,6 +14,9 @@
 #include <math.h>
 #include <vector>
 #include <algorithm>
+#include <thread>
+#include <mutex>
+
 
 static const float EARTH_RADIUS_KM = 6371.0;
 
@@ -30,28 +33,40 @@ typedef struct server_info_t {
     std::string country;
     std::string country_code;
     std::string host;
-    std::string latency_url;
     float lat;
     float lon;
     float distance;
 
 } ServerInfo;
 
+typedef struct test_config_t {
+    long start_size;
+    long max_size;
+    long incr_size;
+    long buff_size;
+    long min_test_time_ms;
+    int  concurrency;
+} TestConfig;
+
+class SpeedTestClient;
+typedef bool (SpeedTestClient::*opFn)(const long size, const long chunk_size, long &millisec);
 class SpeedTest {
 public:
     SpeedTest();
     ~SpeedTest();
-    CURLcode httpGet(const std::string& url, std::ostream& os, CURL *handler = nullptr, long timeout = 30);
+    CURLcode httpGet(const std::string& url, std::stringstream& os, CURL *handler = nullptr, long timeout = 30);
     static std::map<std::string, std::string> parseQueryString(const std::string& query);
     static std::vector<std::string> splitString(const std::string& instr, const char separator);
     bool ipInfo(IPInfo *info);
     const std::vector<ServerInfo>& serverList();
     const ServerInfo bestServer(const int sample_size = 5);
     const double &latency();
-    const double downloadSpeed(const ServerInfo& server);
+    const float downloadSpeed(const ServerInfo& server, const TestConfig& config);
+    const float uploadSpeed(const ServerInfo& server, const TestConfig& config);
 private:
     static size_t writeFunc(void* buf, size_t size, size_t nmemb, void* userp);
     static ServerInfo processServerXMLNode(xmlTextReaderPtr reader);
+    float execute(const ServerInfo &server, const TestConfig &config, const opFn &fnc);
     template <typename T>
         static T deg2rad(T n);
     template <typename T>

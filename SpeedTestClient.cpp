@@ -115,28 +115,24 @@ bool SpeedTestClient::ping(long *millisec) {
     return true;
 }
 
-bool SpeedTestClient::download(const long size, long *millisec) {
+bool SpeedTestClient::download(const long size, const long chunk_size, long &millisec) {
     std::stringstream cmd;
     cmd << "DOWNLOAD " << size << "\n";
+
     if (write(mSocketFd, cmd.str().c_str(), cmd.str().size()) != (int)cmd.str().size()) {
-
-        if (millisec)
-            *millisec = -1;
-
         return false;
     }
 
-    char buff[65536] = {'\0'};
+    char buff[chunk_size];
+    for (size_t i = 0; i < chunk_size; i++)
+        buff[i] = '\0';
+
     long missing = 0;
     auto start = now();
     while (missing != size){
-        auto current = read(mSocketFd, &buff, 65536);
+        auto current = read(mSocketFd, &buff, chunk_size);
 
         if (current <= 0){
-
-            if (millisec)
-                *millisec = -1;
-
             return false;
         }
         missing += current;
@@ -144,6 +140,49 @@ bool SpeedTestClient::download(const long size, long *millisec) {
     }
 
     auto stop = now();
-    *millisec = stop - start;
+    millisec = stop - start;
     return true;
 }
+
+bool SpeedTestClient::upload(const long size, const long chunk_size, long &millisec) {
+    std::stringstream cmd;
+    cmd << "UPLOAD " << size << "\n";
+
+    char buff[chunk_size];
+    for(size_t i = 0; i < chunk_size; i++)
+        buff[i] = rand() % 256;
+
+    long missing = size;
+    auto start = now();
+    auto w = write(mSocketFd, cmd.str().c_str(), cmd.str().size());
+    if (w != cmd.str().size()){
+        return false;
+    }
+    missing -= w;
+
+    while(missing > 0){
+        if (missing - chunk_size > 0){
+            auto w = write(mSocketFd, &buff, chunk_size);
+            if (w != chunk_size){
+                return false;
+            }
+            missing -= w;
+        } else {
+            buff[missing - 1] = '\n';
+            auto w = write(mSocketFd, &buff, missing);
+            if (w != missing){
+                return false;
+            }
+            missing -= w;
+        }
+
+    }
+    auto stop = now();
+    millisec = stop - start;
+
+    char ret[200] = {'\0'};
+    read(mSocketFd, &ret, 200);
+    return std::string(ret).substr(0, 3) == "OK ";
+}
+
+
