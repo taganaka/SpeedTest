@@ -235,7 +235,7 @@ float SpeedTest::execute(const ServerInfo &server, const TestConfig &config, con
     std::vector<std::thread> workers;
     float overall_speed = 0;
     std::mutex mtx;
-    for (size_t i = 0; i < config.concurrency; i++) {
+    for (int i = 0; i < config.concurrency; i++) {
         workers.push_back(std::thread([&server, &overall_speed, &pfunc, &config, &mtx](){
             long start_size = config.start_size;
             long max_size   = config.max_size;
