@@ -31,13 +31,18 @@ bool SpeedTestClient::connect() {
         return ret;
 
     std::string hello = "HI\n";
-    if (write(mSocketFd, hello.c_str(), hello.size()) != (size_t)hello.size()){
+    if (write(mSocketFd, hello.c_str(), hello.size()) != static_cast<ssize_t>(hello.size())){
         close();
         return false;
     }
 
-    char buff[200] = {'\0'};
-    read(mSocketFd, &buff, 200);
+    char buff[100] = {'\0'};
+    ssize_t r = read(mSocketFd, &buff, 100);
+    if (r <= 0){
+        close();
+        return false;
+    }
+
     std::string heloreply(buff);
     std::string cmp = "HELLO";
     if (!heloreply.empty() && heloreply.compare(0, cmp.length(), cmp) == 0){
@@ -116,7 +121,8 @@ bool SpeedTestClient::download(const long size, const long chunk_size, long &mil
     std::stringstream cmd;
     cmd << "DOWNLOAD " << size << "\n";
 
-    if (write(mSocketFd, cmd.str().c_str(), cmd.str().size()) != (int)cmd.str().size()) {
+    auto cmd_len = cmd.str().length();
+    if (write(mSocketFd, cmd.str().c_str(), cmd_len) != static_cast<ssize_t>(cmd_len)) {
         return false;
     }
 
@@ -143,6 +149,7 @@ bool SpeedTestClient::download(const long size, const long chunk_size, long &mil
 bool SpeedTestClient::upload(const long size, const long chunk_size, long &millisec) {
     std::stringstream cmd;
     cmd << "UPLOAD " << size << "\n";
+    auto cmd_len = cmd.str().length();
 
     char buff[chunk_size];
     for(size_t i = 0; i < static_cast<size_t>(chunk_size); i++)
@@ -150,10 +157,13 @@ bool SpeedTestClient::upload(const long size, const long chunk_size, long &milli
 
     long missing = size;
     auto start = now();
-    auto w = write(mSocketFd, cmd.str().c_str(), cmd.str().size());
-    if (w != static_cast<ssize_t>(cmd.str().size())){
+    ssize_t w = 0;
+    w = write(mSocketFd, cmd.str().c_str(), cmd_len);
+
+    if (w != static_cast<ssize_t>(cmd_len)){
         return false;
     }
+
     missing -= w;
 
     while(missing > 0){
@@ -174,11 +184,14 @@ bool SpeedTestClient::upload(const long size, const long chunk_size, long &milli
 
     }
 
+    std::stringstream ss;
+    ss << "OK " << size << " ";
     char ret[200] = {'\0'};
     read(mSocketFd, &ret, 200);
+
     auto stop = now();
     millisec = stop - start;
-    return std::string(ret).substr(0, 3) == "OK ";
+    auto res = std::string(ret);
+    return res.substr(0, ss.str().length()) == ss.str();
+
 }
-
-
