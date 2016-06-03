@@ -3,7 +3,25 @@
 #include "SpeedTest.h"
 #include "TestConfigTemplate.h"
 
-int main() {
+int main(const int argc, const char **argv) {
+
+    bool download_only = false;
+    bool upload_only   = false;
+    bool latency_only  = false;
+
+    std::vector<std::string> options;
+
+    for (int i = 0; i < argc; i++)
+        options.push_back(std::string(argv[i]));
+
+    if (std::find(options.begin(), options.end(), "--latency") != options.end())
+        latency_only = true;
+
+    if (std::find(options.begin(), options.end(), "--download") != options.end())
+        download_only = true;
+
+    if (std::find(options.begin(), options.end(), "--upload") != options.end())
+        upload_only = true;
 
     auto sp = SpeedTest();
     IPInfo info;
@@ -32,6 +50,9 @@ int main() {
         << " (" << serverInfo.distance << " km from you): "
         << sp.latency() << " ms" << std::endl;
 
+    if (latency_only)
+        return EXIT_SUCCESS;
+
 
     std::cout << "Determine line type (" << preflightConfigDownload.concurrency << ") "  << std::flush;
     auto preSpeed = sp.downloadSpeed(serverInfo, preflightConfigDownload);
@@ -55,12 +76,17 @@ int main() {
         uploadConfig   = fiberConfigUpload;
     }
 
-    std::cout << std::endl;
-    std::cout << "Testing download speed (" << downloadConfig.concurrency << ") "  << std::flush;
-    auto downloadSpeed = sp.downloadSpeed(serverInfo, downloadConfig);
+    if (!upload_only){
+        std::cout << std::endl;
+        std::cout << "Testing download speed (" << downloadConfig.concurrency << ") "  << std::flush;
+        auto downloadSpeed = sp.downloadSpeed(serverInfo, downloadConfig);
 
-    std::cout << std::endl;
-    std::cout << "Download: " << downloadSpeed << " Mbit/s" << std::endl;
+        std::cout << std::endl;
+        std::cout << "Download: " << downloadSpeed << " Mbit/s" << std::endl;
+    }
+
+    if (download_only)
+        return EXIT_SUCCESS;
 
 
     std::cout << "Testing upload speed (" << uploadConfig.concurrency << ") "  << std::flush;

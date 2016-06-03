@@ -61,7 +61,6 @@ void SpeedTestClient::close() {
 
 }
 
-
 bool SpeedTestClient::mkSocket() {
     mSocketFd = socket(AF_INET, SOCK_STREAM, 0);
 

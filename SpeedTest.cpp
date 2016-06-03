@@ -5,6 +5,13 @@
 #include <cmath>
 #include "SpeedTest.h"
 #include "SpeedTestClient.h"
+#if defined(__APPLE__)
+#  define COMMON_DIGEST_FOR_OPENSSL
+#  include <CommonCrypto/CommonDigest.h>
+#  define SHA1 CC_SHA1
+#else
+#  include <openssl/md5.h>
+#endif
 
 SpeedTest::SpeedTest() {
     curl_global_init(CURL_GLOBAL_DEFAULT);

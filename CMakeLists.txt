@@ -16,6 +16,9 @@ add_executable(SpeedTest ${SOURCE_FILES})
 
 find_package(CURL REQUIRED)
 find_package(LibXml2 REQUIRED)
+if (NOT (APPLE))
+    find_package(OpenSSL REQUIRED)
+endif()
 
 include_directories(${CURL_INCLUDE_DIRS} ${LIBXML2_INCLUDE_DIR})
-target_link_libraries(SpeedTest ${CURL_LIBRARIES} ${LIBXML2_LIBRARIES})
+target_link_libraries(SpeedTest ${CURL_LIBRARIES} ${LIBXML2_LIBRARIES} -lssl -lcrypto)
