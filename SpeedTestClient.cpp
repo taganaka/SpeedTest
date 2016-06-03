@@ -30,8 +30,8 @@ bool SpeedTestClient::connect() {
     if (!ret)
         return ret;
 
-    std::string helo = "HI\n";
-    if (write(mSocketFd, helo.c_str(), helo.size()) != (int)helo.size()){
+    std::string hello = "HI\n";
+    if (write(mSocketFd, hello.c_str(), hello.size()) != (size_t)hello.size()){
         close();
         return false;
     }
@@ -92,27 +92,24 @@ bool SpeedTestClient::mkSocket() {
     return true;
 }
 
-bool SpeedTestClient::ping(long *millisec) {
+bool SpeedTestClient::ping(long &millisec) {
     std::stringstream cmd;
     auto start = now();
     cmd << "PING " << start << "\n";
 
     char buff[200] = {'\0'};
     if (write(mSocketFd, cmd.str().c_str(), cmd.str().size()) != (int)cmd.str().size()){
-
-        if (millisec)
-            *millisec = -1;
-
         return false;
     }
 
     read(mSocketFd, &buff, 200);
-    auto stop = now();
+    if (std::string(buff).substr(0, 5) == "PONG "){
+        auto stop = now();
+        millisec = stop - start;
+        return true;
+    }
 
-    if (millisec)
-        *millisec = stop - start;
-
-    return true;
+    return false;
 }
 
 bool SpeedTestClient::download(const long size, const long chunk_size, long &millisec) {
@@ -176,11 +173,11 @@ bool SpeedTestClient::upload(const long size, const long chunk_size, long &milli
         }
 
     }
-    auto stop = now();
-    millisec = stop - start;
 
     char ret[200] = {'\0'};
     read(mSocketFd, &ret, 200);
+    auto stop = now();
+    millisec = stop - start;
     return std::string(ret).substr(0, 3) == "OK ";
 }
 

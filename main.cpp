@@ -1,65 +1,73 @@
 #include <iostream>
 #include <map>
 #include "SpeedTest.h"
-
+#include "TestConfigTemplate.h"
 
 int main() {
 
     auto sp = SpeedTest();
     IPInfo info;
     if (!sp.ipInfo(&info)){
+        std::cerr << "Unable to retrieve your IP info. Try again later" << std::endl;
         return EXIT_FAILURE;
     }
 
-    std::cout << "IP: " << info.ip_address << std::endl;
-    std::cout << "Lat / Lon: " << info.lat << " / " << info.lon << std::endl;
-    std::cout << "Provider: " << info.isp  << std::endl;
-    std::cout << "Finding closest server..." << std::endl;
+    std::cout << "IP: " << info.ip_address
+        << " ( " << info.isp << " ) "
+        << "Location: [" << info.lat << ", " << info.lon << "]" << std::endl;
+
+    std::cout << "Finding fastest server... " << std::flush;
     auto serverList = sp.serverList();
+    if (serverList.empty()){
+        std::cerr << "Unable to download server list. Try again later" << std::endl;
+        return EXIT_FAILURE;
+    }
     std::cout << serverList.size() << " Servers online" << std::endl;
-    std::cout << "Closest: " << serverList[0].name << " (" << serverList[0].distance << " km)" << std::endl;
 
-    std::cout << "Finding fastest server..." << std::endl;
+
     ServerInfo serverInfo = sp.bestServer(10);
-    std::cout << "Fastest: " << serverInfo.name << " (" << serverInfo.distance << " km)" << std::endl;
-
     std::cout << std::endl;
-    std::cout << "Latency: " << sp.latency() << " ms" << std::endl;
-
-    auto concurrency = std::thread::hardware_concurrency();
-    if (concurrency <= 0)
-        concurrency = 4;
-
-    TestConfig downloadConfig;
-    downloadConfig.buff_size = 65536;
-    downloadConfig.concurrency = concurrency;
-    downloadConfig.start_size = 1000000;
-    downloadConfig.incr_size = 750000;
-    downloadConfig.min_test_time_ms = 20000;
-    downloadConfig.max_size = 100000000;
+    std::cout << "Server: " << serverInfo.name
+        << " by " << serverInfo.sponsor
+        << " (" << serverInfo.distance << " km from you): "
+        << sp.latency() << " ms" << std::endl;
 
 
-    TestConfig uploadConfig;
-    uploadConfig.buff_size = 65536;
-    uploadConfig.concurrency = concurrency;
-    uploadConfig.start_size = 1000000;
-    uploadConfig.incr_size = 250000;
-    uploadConfig.min_test_time_ms = 20000;
-    uploadConfig.max_size = 70000000;
+    std::cout << "Determine line type (" << preflightConfigDownload.concurrency << ") "  << std::flush;
+    auto preSpeed = sp.downloadSpeed(serverInfo, preflightConfigDownload);
+    std::cout << std::endl;
+
+    TestConfig uploadConfig   = slowConfigUpload;
+    TestConfig downloadConfig = slowConfigDownload;
+    if (preSpeed <= 4){
+        std::cout << "Very-slow-line line type detected: profile selected slowband" << std::endl;
+    } else if (preSpeed > 4 && preSpeed <= 20){
+        std::cout << "Buffering-lover line type detected: profile selected narrowband" << std::endl;
+        downloadConfig = narrowConfigDownload;
+        uploadConfig   = narrowConfigUpload;
+    } else if (preSpeed > 20 && preSpeed < 150) {
+        std::cout << "Broadband line type detected: profile selected broadband" << std::endl;
+        downloadConfig = broadbandConfigDownload;
+        uploadConfig   = broadbandConfigUpload;
+    } else if (preSpeed >= 150) {
+        std::cout << "Fiber / Lan line type detected: profile selected fiber" << std::endl;
+        downloadConfig = fiberConfigDownload;
+        uploadConfig   = fiberConfigUpload;
+    }
 
     std::cout << std::endl;
     std::cout << "Testing download speed (" << downloadConfig.concurrency << ") "  << std::flush;
     auto downloadSpeed = sp.downloadSpeed(serverInfo, downloadConfig);
 
     std::cout << std::endl;
-    std::cout << "Download speed: " << downloadSpeed << " MBit/s" << std::endl;
-    std::cout << std::endl;
+    std::cout << "Download: " << downloadSpeed << " Mbit/s" << std::endl;
+
 
     std::cout << "Testing upload speed (" << uploadConfig.concurrency << ") "  << std::flush;
     auto uploadSpeed = sp.uploadSpeed(serverInfo, uploadConfig);
     std::cout << std::endl;
-    std::cout << "Upload speed: " << uploadSpeed << " MBit/s" << std::endl;
-    std::cout << std::endl;
+    std::cout << "Upload: " << uploadSpeed << " Mbit/s" << std::endl;
 
-    return 0;
+
+    return EXIT_SUCCESS;
 }

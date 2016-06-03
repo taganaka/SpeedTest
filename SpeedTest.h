@@ -20,6 +20,10 @@
 
 static const float EARTH_RADIUS_KM = 6371.0;
 
+static const std::string IP_INFO_API_URL = "http://speedtest.ookla.com/api/ipaddress.php";
+static const std::string SERVER_LIST_URL = "http://www.speedtest.net/speedtest-servers-static.php";
+static const std::string USER_AGENT = "Mozilla/5.0 SpeedTest++";
+
 typedef struct ip_info_t {
     std::string ip_address;
     std::string isp;
@@ -33,6 +37,8 @@ typedef struct server_info_t {
     std::string country;
     std::string country_code;
     std::string host;
+    std::string sponsor;
+    int   id;
     float lat;
     float lon;
     float distance;
