@@ -3,10 +3,20 @@
 #include "SpeedTest.h"
 #include "TestConfigTemplate.h"
 
-
 void banner(){
     std::cout << "SpeedTest++ version " << SpeedTest_VERSION_MAJOR << "." << SpeedTest_VERSION_MINOR << std::endl;
+    std::cout << "speedtest.net command line interface" << std::endl;
     std::cout << "Author: " << SpeedTest_AUTHOR << std::endl;
+}
+
+void usage(const char* name){
+    std::cout << "usage: " << name << " ";
+    std::cout << "[--latency] [--download] [--upload] [--help]" << std::endl;
+    std::cout << "optional arguments:" << std::endl;
+    std::cout << "\t--help      Show this message and exit\n";
+    std::cout << "\t--latency   Perform latency test only\n";
+    std::cout << "\t--download  Perform download test only. It includes latency test\n";
+    std::cout << "\t--upload    Perform upload test only. It includes latency test\n";
 }
 
 int main(const int argc, const char **argv) {
@@ -20,6 +30,14 @@ int main(const int argc, const char **argv) {
     for (int i = 0; i < argc; i++)
         options.push_back(std::string(argv[i]));
 
+    banner();
+    std::cout << std::endl;
+
+    if (std::find(options.begin(), options.end(), "--help") != options.end()) {
+        usage(argv[0]);
+        return EXIT_SUCCESS;
+    }
+
     if (std::find(options.begin(), options.end(), "--latency") != options.end())
         latency_only = true;
 
@@ -29,9 +47,6 @@ int main(const int argc, const char **argv) {
     if (std::find(options.begin(), options.end(), "--upload") != options.end())
         upload_only = true;
 
-    std::cout << std::endl;
-    banner();
-    std::cout << std::endl;
 
     auto sp = SpeedTest();
     IPInfo info;

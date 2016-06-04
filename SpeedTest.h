@@ -65,8 +65,8 @@ public:
     const std::vector<ServerInfo>& serverList();
     const ServerInfo bestServer(const int sample_size = 5);
     const double &latency();
-    const float downloadSpeed(const ServerInfo& server, const TestConfig& config);
-    const float uploadSpeed(const ServerInfo& server, const TestConfig& config);
+    const double downloadSpeed(const ServerInfo& server, const TestConfig& config);
+    const double uploadSpeed(const ServerInfo& server, const TestConfig& config);
 private:
     static CURL* curl_setup(CURL* curl = nullptr);
     static size_t writeFunc(void* buf, size_t size, size_t nmemb, void* userp);
@@ -80,6 +80,8 @@ private:
     IPInfo mIpInfo;
     std::vector<ServerInfo> mServerList;
     double mLatency;
+    double mUploadSpeed;
+    double mDownloadSpeed;
 
 };
 

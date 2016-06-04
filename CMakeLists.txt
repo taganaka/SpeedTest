@@ -6,7 +6,7 @@ set (SpeedTest_VERSION_MINOR 0)
 set (SpeedTest_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR})
 set (SpeedTest_SYSTEM ${CMAKE_SYSTEM})
 
-set (SpeedTest_AUTHOR "Francesco Laurita <francesco.laurita@gmail.com")
+set (SpeedTest_AUTHOR "Francesco Laurita <francesco.laurita@gmail.com>")
 set (SpeedTest_USER_AGENT "Mozilla/5.0 ${CMAKE_SYSTEM}; U; ${CMAKE_SYSTEM_PROCESSOR}; en-us (KHTML, like Gecko) SpeedTest++/${SpeedTest_VERSION_MAJOR}.${SpeedTest_VERSION_MINOR}")
 set (SpeedTest_SERVER_LIST_URL "http://www.speedtest.net/speedtest-servers-static.php")
 set (SpeedTest_IP_INFO_API_URL "http://speedtest.ookla.com/api/ipaddress.php")
@@ -22,7 +22,7 @@ set(SOURCE_FILES
         SpeedTestClient.cpp
         SpeedTestClient.h
         TestConfigTemplate.h
-        )
+        MD5Util.cpp MD5Util.h)
 
 configure_file (
         "${PROJECT_SOURCE_DIR}/SpeedTestConfig.h.in"

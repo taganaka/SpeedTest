@@ -5,19 +5,14 @@
 #include <cmath>
 #include "SpeedTest.h"
 #include "SpeedTestClient.h"
-#if defined(__APPLE__)
-#  define COMMON_DIGEST_FOR_OPENSSL
-#  include <CommonCrypto/CommonDigest.h>
-#  define SHA1 CC_SHA1
-#else
-#  include <openssl/md5.h>
-#endif
 
 SpeedTest::SpeedTest() {
     curl_global_init(CURL_GLOBAL_DEFAULT);
     mIpInfo = IPInfo();
     mServerList = std::vector<ServerInfo>();
-    mLatency = -1;
+    mLatency = 0;
+    mUploadSpeed = 0;
+    mDownloadSpeed = 0;
 }
 
 SpeedTest::~SpeedTest() {
@@ -139,14 +134,16 @@ const ServerInfo SpeedTest::bestServer(const int sample_size) {
     return bestServer;
 }
 
-const float SpeedTest::downloadSpeed(const ServerInfo &server, const TestConfig &config) {
+const double SpeedTest::downloadSpeed(const ServerInfo &server, const TestConfig &config) {
     opFn pfunc = &SpeedTestClient::download;
-    return execute(server, config, pfunc);
+    mDownloadSpeed = execute(server, config, pfunc);
+    return mDownloadSpeed;
 }
 
-const float SpeedTest::uploadSpeed(const ServerInfo &server, const TestConfig &config) {
+const double SpeedTest::uploadSpeed(const ServerInfo &server, const TestConfig &config) {
     opFn pfunc = &SpeedTestClient::upload;
-    return execute(server, config, pfunc);
+    mUploadSpeed = execute(server, config, pfunc);
+    return mUploadSpeed;
 }
 
 const double &SpeedTest::latency() {
@@ -157,7 +154,7 @@ const double &SpeedTest::latency() {
 
 float SpeedTest::execute(const ServerInfo &server, const TestConfig &config, const opFn &pfunc) {
     std::vector<std::thread> workers;
-    float overall_speed = 0;
+    double overall_speed = 0;
     std::mutex mtx;
     for (int i = 0; i < config.concurrency; i++) {
         workers.push_back(std::thread([&server, &overall_speed, &pfunc, &config, &mtx](){
@@ -172,13 +169,13 @@ float SpeedTest::execute(const ServerInfo &server, const TestConfig &config, con
                 long total_size = 0;
                 long total_time = 0;
                 auto start = SpeedTestClient::now();
-                std::vector<float> partial_results;
+                std::vector<double> partial_results;
                 while (curr_size < max_size){
                     long op_time = 0;
                     if ((spClient.*pfunc)(curr_size, config.buff_size, op_time)) {
                         total_size += curr_size;
                         total_time += op_time;
-                        float metric = (curr_size * 8) / (static_cast<float>(op_time) / 1000);
+                        double metric = (curr_size * 8) / (static_cast<double>(op_time) / 1000);
                         partial_results.push_back(metric);
                         std::cout << "." << std::flush;
                     } else {
@@ -200,7 +197,7 @@ float SpeedTest::execute(const ServerInfo &server, const TestConfig &config, con
                 }
 
                 size_t iter = 0;
-                float real_sum = 0;
+                double real_sum = 0;
                 for (auto it = partial_results.begin() + skip; it != partial_results.end() - drop; ++it ){
                     iter++;
                     real_sum += (*it);
