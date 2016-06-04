@@ -3,6 +3,12 @@
 #include "SpeedTest.h"
 #include "TestConfigTemplate.h"
 
+
+void banner(){
+    std::cout << "SpeedTest++ version " << SpeedTest_VERSION_MAJOR << "." << SpeedTest_VERSION_MINOR << std::endl;
+    std::cout << "Author: " << SpeedTest_AUTHOR << std::endl;
+}
+
 int main(const int argc, const char **argv) {
 
     bool download_only = false;
@@ -22,6 +28,10 @@ int main(const int argc, const char **argv) {
 
     if (std::find(options.begin(), options.end(), "--upload") != options.end())
         upload_only = true;
+
+    std::cout << std::endl;
+    banner();
+    std::cout << std::endl;
 
     auto sp = SpeedTest();
     IPInfo info;
@@ -62,11 +72,11 @@ int main(const int argc, const char **argv) {
     TestConfig downloadConfig = slowConfigDownload;
     if (preSpeed <= 4){
         std::cout << "Very-slow-line line type detected: profile selected slowband" << std::endl;
-    } else if (preSpeed > 4 && preSpeed <= 20){
+    } else if (preSpeed > 4 && preSpeed <= 30){
         std::cout << "Buffering-lover line type detected: profile selected narrowband" << std::endl;
         downloadConfig = narrowConfigDownload;
         uploadConfig   = narrowConfigUpload;
-    } else if (preSpeed > 20 && preSpeed < 150) {
+    } else if (preSpeed > 30 && preSpeed < 150) {
         std::cout << "Broadband line type detected: profile selected broadband" << std::endl;
         downloadConfig = broadbandConfigDownload;
         uploadConfig   = broadbandConfigUpload;

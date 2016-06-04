@@ -5,13 +5,14 @@
 #ifndef SPEEDTEST_SPEEDTEST_H
 #define SPEEDTEST_SPEEDTEST_H
 
-#include <map>
+#include "SpeedTestConfig.h"
+#include <libxml/xmlreader.h>
+#include <math.h>
 #include <curl/curl.h>
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <libxml/xmlreader.h>
-#include <math.h>
+#include <map>
 #include <vector>
 #include <algorithm>
 #include <thread>
@@ -19,10 +20,6 @@
 
 
 static const float EARTH_RADIUS_KM = 6371.0;
-
-static const std::string IP_INFO_API_URL = "http://speedtest.ookla.com/api/ipaddress.php";
-static const std::string SERVER_LIST_URL = "http://www.speedtest.net/speedtest-servers-static.php";
-static const std::string USER_AGENT = "Mozilla/5.0 SpeedTest++";
 
 typedef struct ip_info_t {
     std::string ip_address;
@@ -61,6 +58,7 @@ public:
     SpeedTest();
     ~SpeedTest();
     CURLcode httpGet(const std::string& url, std::stringstream& os, CURL *handler = nullptr, long timeout = 30);
+    CURLcode httpPost(const std::string& url, const std::string& postdata, std::stringstream& os, CURL *handler = nullptr, long timeout = 30);
     static std::map<std::string, std::string> parseQueryString(const std::string& query);
     static std::vector<std::string> splitString(const std::string& instr, const char separator);
     bool ipInfo(IPInfo *info);
@@ -70,6 +68,7 @@ public:
     const float downloadSpeed(const ServerInfo& server, const TestConfig& config);
     const float uploadSpeed(const ServerInfo& server, const TestConfig& config);
 private:
+    static CURL* curl_setup(CURL* curl = nullptr);
     static size_t writeFunc(void* buf, size_t size, size_t nmemb, void* userp);
     static ServerInfo processServerXMLNode(xmlTextReaderPtr reader);
     float execute(const ServerInfo &server, const TestConfig &config, const opFn &fnc);
