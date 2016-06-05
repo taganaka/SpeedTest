@@ -6,13 +6,10 @@
 #include "SpeedTest.h"
 #include "SpeedTestClient.h"
 
-SpeedTest::SpeedTest() {
+SpeedTest::SpeedTest(): mLatency(0), mUploadSpeed(0), mDownloadSpeed(0) {
     curl_global_init(CURL_GLOBAL_DEFAULT);
     mIpInfo = IPInfo();
     mServerList = std::vector<ServerInfo>();
-    mLatency = 0;
-    mUploadSpeed = 0;
-    mDownloadSpeed = 0;
 }
 
 SpeedTest::~SpeedTest() {

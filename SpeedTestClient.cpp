@@ -5,14 +5,13 @@
 #include <arpa/inet.h>
 #include "SpeedTestClient.h"
 
-SpeedTestClient::SpeedTestClient(const ServerInfo &serverInfo): mServerInfo(serverInfo) {
-    mSocketFd = 0;
-}
+SpeedTestClient::SpeedTestClient(const ServerInfo &serverInfo): mServerInfo(serverInfo), mSocketFd(0) {}
 
 SpeedTestClient::~SpeedTestClient() {
     close();
 }
 
+// It returns current timestamp in ms
 std::time_t SpeedTestClient::now() {
 
     return std::chrono::duration_cast<std::chrono::milliseconds>
@@ -20,6 +19,7 @@ std::time_t SpeedTestClient::now() {
             .count();
 }
 
+// It connects and initiates client/server handshacking
 bool SpeedTestClient::connect() {
 
     if (mSocketFd){
@@ -52,6 +52,7 @@ bool SpeedTestClient::connect() {
     return false;
 }
 
+// It closes a connection
 void SpeedTestClient::close() {
     if (mSocketFd){
         std::string quit = "QUIT\n";
@@ -61,41 +62,7 @@ void SpeedTestClient::close() {
 
 }
 
-bool SpeedTestClient::mkSocket() {
-    mSocketFd = socket(AF_INET, SOCK_STREAM, 0);
-
-    if (!mSocketFd){
-        std::cerr << "ERROR, socket()" << std::endl;
-        return false;
-    }
-
-    std::size_t found = mServerInfo.host.find(":");
-    std::string host = mServerInfo.host.substr(0, found);
-    std::string port = mServerInfo.host.substr(found + 1, mServerInfo.host.length() - found);
-
-    struct hostent *server = gethostbyname(host.c_str());
-    if (server == nullptr) {
-        std::cerr << "ERROR, no such host " << host << std::endl;
-        return false;
-    }
-
-    int portno = std::atoi(port.c_str());
-    struct sockaddr_in serv_addr;
-    memset(&serv_addr, 0, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, (size_t)server->h_length);
-
-    serv_addr.sin_port = htons(static_cast<uint16_t>(portno));
-
-    /* Dial */
-    if (::connect(mSocketFd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
-        perror("::connect");
-        std::cerr << "ERROR connecting" << std::endl;
-        return false;
-    }
-    return true;
-}
-
+// It executes PING command
 bool SpeedTestClient::ping(long &millisec) {
     std::stringstream cmd;
     auto start = now();
@@ -116,6 +83,7 @@ bool SpeedTestClient::ping(long &millisec) {
     return false;
 }
 
+// It executes DOWNLOAD command
 bool SpeedTestClient::download(const long size, const long chunk_size, long &millisec) {
     std::stringstream cmd;
     cmd << "DOWNLOAD " << size << "\n";
@@ -145,6 +113,7 @@ bool SpeedTestClient::download(const long size, const long chunk_size, long &mil
     return true;
 }
 
+// It executes UPLOAD command
 bool SpeedTestClient::upload(const long size, const long chunk_size, long &millisec) {
     std::stringstream cmd;
     cmd << "UPLOAD " << size << "\n";
@@ -193,4 +162,39 @@ bool SpeedTestClient::upload(const long size, const long chunk_size, long &milli
     auto res = std::string(ret);
     return res.substr(0, ss.str().length()) == ss.str();
 
+}
+
+
+bool SpeedTestClient::mkSocket() {
+    mSocketFd = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (!mSocketFd){
+        std::cerr << "ERROR, socket()" << std::endl;
+        return false;
+    }
+
+    std::size_t found = mServerInfo.host.find(":");
+    std::string host = mServerInfo.host.substr(0, found);
+    std::string port = mServerInfo.host.substr(found + 1, mServerInfo.host.length() - found);
+
+    struct hostent *server = gethostbyname(host.c_str());
+    if (server == nullptr) {
+        std::cerr << "ERROR, no such host " << host << std::endl;
+        return false;
+    }
+
+    int portno = std::atoi(port.c_str());
+    struct sockaddr_in serv_addr;
+    memset(&serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, (size_t)server->h_length);
+
+    serv_addr.sin_port = htons(static_cast<uint16_t>(portno));
+
+    /* Dial */
+    if (::connect(mSocketFd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
+        std::cerr << "::connect() error" << std::endl;
+        return false;
+    }
+    return true;
 }

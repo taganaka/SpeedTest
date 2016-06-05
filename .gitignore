@@ -27,5 +27,5 @@
 *.exe
 *.out
 *.app
-build/
+cmake_build/
 .idea/
