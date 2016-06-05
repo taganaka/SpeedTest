@@ -10,6 +10,9 @@ set (SpeedTest_AUTHOR "Francesco Laurita <francesco.laurita@gmail.com>")
 set (SpeedTest_USER_AGENT "Mozilla/5.0 ${CMAKE_SYSTEM}; U; ${CMAKE_SYSTEM_PROCESSOR}; en-us (KHTML, like Gecko) SpeedTest++/${SpeedTest_VERSION_MAJOR}.${SpeedTest_VERSION_MINOR}")
 set (SpeedTest_SERVER_LIST_URL "http://www.speedtest.net/speedtest-servers-static.php")
 set (SpeedTest_IP_INFO_API_URL "http://speedtest.ookla.com/api/ipaddress.php")
+set (SpeedTest_API_URL "http://www.speedtest.net/api/api.php")
+set (SpeedTest_API_REFERER "http://c.speedtest.net/flash/speedtest.swf")
+set (SpeedTest_API_KEY "297aae72")
 
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")

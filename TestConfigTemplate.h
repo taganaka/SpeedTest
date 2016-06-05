@@ -7,30 +7,6 @@
 
 #include "SpeedTest.h"
 
-//long start_size;
-//long max_size;
-//long incr_size;
-//long buff_size;
-//long min_test_time_ms;
-//int  concurrency;
-
-
-//downloadConfig.buff_size = 65536;
-//downloadConfig.concurrency = 16;
-//downloadConfig.start_size = 1000000;
-//downloadConfig.incr_size = 750000;
-//downloadConfig.min_test_time_ms = 20000;
-//downloadConfig.max_size = 100000000;
-//
-//
-//TestConfig uploadConfig;
-//uploadConfig.buff_size = 65536;
-//uploadConfig.concurrency = concurrency;
-//uploadConfig.start_size = 1000000;
-//uploadConfig.incr_size = 250000;
-//uploadConfig.min_test_time_ms = 20000;
-//uploadConfig.max_size = 70000000;
-
 const TestConfig preflightConfigDownload = {
          600000, // start_size
         2000000, // max_size
@@ -83,7 +59,7 @@ const TestConfig broadbandConfigDownload = {
         750000,    // inc_size
         65536,     // buff_size
         20000,     // min_test_time_ms
-        16,        // concurrency
+        32,        // concurrency
 
 };
 

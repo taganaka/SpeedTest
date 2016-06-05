@@ -17,6 +17,7 @@ void usage(const char* name){
     std::cout << "\t--latency   Perform latency test only\n";
     std::cout << "\t--download  Perform download test only. It includes latency test\n";
     std::cout << "\t--upload    Perform upload test only. It includes latency test\n";
+    std::cout << "\t--share     Generate and provide a URL to the speedtest.net share results image\n";
 }
 
 int main(const int argc, const char **argv) {
@@ -24,6 +25,7 @@ int main(const int argc, const char **argv) {
     bool download_only = false;
     bool upload_only   = false;
     bool latency_only  = false;
+    bool share         = false;
 
     std::vector<std::string> options;
 
@@ -46,6 +48,9 @@ int main(const int argc, const char **argv) {
 
     if (std::find(options.begin(), options.end(), "--upload") != options.end())
         upload_only = true;
+
+    if (std::find(options.begin(), options.end(), "--share") != options.end())
+        share = true;
 
 
     auto sp = SpeedTest();
@@ -119,6 +124,12 @@ int main(const int argc, const char **argv) {
     std::cout << std::endl;
     std::cout << "Upload: " << uploadSpeed << " Mbit/s" << std::endl;
 
+    if (share && !upload_only && !download_only && !latency_only){
+        std::string share_it;
+        if (sp.share(serverInfo, share_it)){
+            std::cout << "Results image: " << share_it << std::endl;
+        }
+    }
 
     return EXIT_SUCCESS;
 }

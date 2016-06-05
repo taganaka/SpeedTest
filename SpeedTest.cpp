@@ -3,8 +3,10 @@
 //
 
 #include <cmath>
+#include <iomanip>
 #include "SpeedTest.h"
 #include "SpeedTestClient.h"
+#include "MD5Util.h"
 
 SpeedTest::SpeedTest(): mLatency(0), mUploadSpeed(0), mDownloadSpeed(0) {
     curl_global_init(CURL_GLOBAL_DEFAULT);
@@ -374,3 +376,44 @@ ServerInfo SpeedTest::processServerXMLNode(xmlTextReaderPtr reader) {
 
     return ServerInfo();
 }
+
+bool SpeedTest::share(const ServerInfo& server, std::string& image_url) {
+    std::stringstream hash;
+    hash << std::setprecision(0) << std::fixed << mLatency
+        << "-" << std::setprecision(2) << std::fixed << (mUploadSpeed * 1000)
+        << "-" << std::setprecision(2) << std::fixed << (mDownloadSpeed * 1000)
+        << "-" << SPEED_TEST_API_KEY;
+    std::string hex_digest = MD5Util::hexDigest(hash.str());
+    std::stringstream post_data;
+    post_data << "download=" << std::setprecision(2) << std::fixed << (mDownloadSpeed * 1000) << "&";
+    post_data << "ping=" << std::setprecision(0) << std::fixed << mLatency << "&";
+    post_data << "upload=" << std::setprecision(2) << std::fixed << (mUploadSpeed * 1000) << "&";
+    post_data << "pingselect=1&";
+    post_data << "recommendedserverid=" << server.id << "&";
+    post_data << "accuracy=1&";
+    post_data << "serverid=" << server.id << "&";
+    post_data << "hash=";
+    post_data << hex_digest;
+
+    std::stringstream result;
+    CURL *c = curl_easy_init();
+    curl_easy_setopt(c, CURLOPT_REFERER, SPEED_TEST_API_REFERER);
+    auto cres = SpeedTest::httpPost(SPEED_TEST_API_URL, post_data.str(), result, c);
+    long http_code = 0;
+    image_url.clear();
+    if (cres == CURLE_OK){
+        curl_easy_getinfo(c, CURLINFO_HTTP_CODE, &http_code);
+        if (http_code == 200 && !result.str().empty()){
+            auto data = SpeedTest::parseQueryString(result.str());
+            if (data.count("resultid") == 1){
+                image_url = "http://www.speedtest.net/result/" + data["resultid"] + ".png";
+            }
+
+        }
+    }
+
+    curl_easy_cleanup(c);
+    return !image_url.empty();
+}
+
+
