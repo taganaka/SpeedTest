@@ -124,7 +124,7 @@ int main(const int argc, const char **argv) {
     std::cout << std::endl;
     std::cout << "Upload: " << uploadSpeed << " Mbit/s" << std::endl;
 
-    if (share && !upload_only && !download_only && !latency_only){
+    if (share){
         std::string share_it;
         if (sp.share(serverInfo, share_it)){
             std::cout << "Results image: " << share_it << std::endl;

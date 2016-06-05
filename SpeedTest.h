@@ -72,7 +72,7 @@ private:
     static CURL* curl_setup(CURL* curl = nullptr);
     static size_t writeFunc(void* buf, size_t size, size_t nmemb, void* userp);
     static ServerInfo processServerXMLNode(xmlTextReaderPtr reader);
-    float execute(const ServerInfo &server, const TestConfig &config, const opFn &fnc);
+    double execute(const ServerInfo &server, const TestConfig &config, const opFn &fnc);
     template <typename T>
         static T deg2rad(T n);
     template <typename T>

@@ -149,9 +149,48 @@ const double &SpeedTest::latency() {
     return mLatency;
 }
 
+bool SpeedTest::share(const ServerInfo& server, std::string& image_url) {
+    std::stringstream hash;
+    hash << std::setprecision(0) << std::fixed << mLatency
+    << "-" << std::setprecision(2) << std::fixed << (mUploadSpeed * 1000)
+    << "-" << std::setprecision(2) << std::fixed << (mDownloadSpeed * 1000)
+    << "-" << SPEED_TEST_API_KEY;
+    std::string hex_digest = MD5Util::hexDigest(hash.str());
+    std::stringstream post_data;
+    post_data << "download=" << std::setprecision(2) << std::fixed << (mDownloadSpeed * 1000) << "&";
+    post_data << "ping=" << std::setprecision(0) << std::fixed << mLatency << "&";
+    post_data << "upload=" << std::setprecision(2) << std::fixed << (mUploadSpeed * 1000) << "&";
+    post_data << "pingselect=1&";
+    post_data << "recommendedserverid=" << server.id << "&";
+    post_data << "accuracy=1&";
+    post_data << "serverid=" << server.id << "&";
+    post_data << "hash=";
+    post_data << hex_digest;
+
+    std::stringstream result;
+    CURL *c = curl_easy_init();
+    curl_easy_setopt(c, CURLOPT_REFERER, SPEED_TEST_API_REFERER);
+    auto cres = SpeedTest::httpPost(SPEED_TEST_API_URL, post_data.str(), result, c);
+    long http_code = 0;
+    image_url.clear();
+    if (cres == CURLE_OK){
+        curl_easy_getinfo(c, CURLINFO_HTTP_CODE, &http_code);
+        if (http_code == 200 && !result.str().empty()){
+            auto data = SpeedTest::parseQueryString(result.str());
+            if (data.count("resultid") == 1){
+                image_url = "http://www.speedtest.net/result/" + data["resultid"] + ".png";
+            }
+
+        }
+    }
+
+    curl_easy_cleanup(c);
+    return !image_url.empty();
+}
+
 // private
 
-float SpeedTest::execute(const ServerInfo &server, const TestConfig &config, const opFn &pfunc) {
+double SpeedTest::execute(const ServerInfo &server, const TestConfig &config, const opFn &pfunc) {
     std::vector<std::thread> workers;
     double overall_speed = 0;
     std::mutex mtx;
@@ -253,8 +292,7 @@ CURLcode SpeedTest::httpGet(const std::string &url, std::stringstream &ss, CURL 
     return code;
 }
 
-CURLcode SpeedTest::httpPost(const std::string &url, const std::string &postdata, std::stringstream &os, void *handler,
-                             long timeout) {
+CURLcode SpeedTest::httpPost(const std::string &url, const std::string &postdata, std::stringstream &os, void *handler, long timeout) {
 
     CURLcode code(CURLE_FAILED_INIT);
     CURL* curl = SpeedTest::curl_setup(handler);
@@ -376,44 +414,4 @@ ServerInfo SpeedTest::processServerXMLNode(xmlTextReaderPtr reader) {
 
     return ServerInfo();
 }
-
-bool SpeedTest::share(const ServerInfo& server, std::string& image_url) {
-    std::stringstream hash;
-    hash << std::setprecision(0) << std::fixed << mLatency
-        << "-" << std::setprecision(2) << std::fixed << (mUploadSpeed * 1000)
-        << "-" << std::setprecision(2) << std::fixed << (mDownloadSpeed * 1000)
-        << "-" << SPEED_TEST_API_KEY;
-    std::string hex_digest = MD5Util::hexDigest(hash.str());
-    std::stringstream post_data;
-    post_data << "download=" << std::setprecision(2) << std::fixed << (mDownloadSpeed * 1000) << "&";
-    post_data << "ping=" << std::setprecision(0) << std::fixed << mLatency << "&";
-    post_data << "upload=" << std::setprecision(2) << std::fixed << (mUploadSpeed * 1000) << "&";
-    post_data << "pingselect=1&";
-    post_data << "recommendedserverid=" << server.id << "&";
-    post_data << "accuracy=1&";
-    post_data << "serverid=" << server.id << "&";
-    post_data << "hash=";
-    post_data << hex_digest;
-
-    std::stringstream result;
-    CURL *c = curl_easy_init();
-    curl_easy_setopt(c, CURLOPT_REFERER, SPEED_TEST_API_REFERER);
-    auto cres = SpeedTest::httpPost(SPEED_TEST_API_URL, post_data.str(), result, c);
-    long http_code = 0;
-    image_url.clear();
-    if (cres == CURLE_OK){
-        curl_easy_getinfo(c, CURLINFO_HTTP_CODE, &http_code);
-        if (http_code == 200 && !result.str().empty()){
-            auto data = SpeedTest::parseQueryString(result.str());
-            if (data.count("resultid") == 1){
-                image_url = "http://www.speedtest.net/result/" + data["resultid"] + ".png";
-            }
-
-        }
-    }
-
-    curl_easy_cleanup(c);
-    return !image_url.empty();
-}
-
 
