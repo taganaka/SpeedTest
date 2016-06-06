@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 project(SpeedTest)
 
 set (SpeedTest_VERSION_MAJOR 1)
-set (SpeedTest_VERSION_MINOR 0)
+set (SpeedTest_VERSION_MINOR 1)
 set (SpeedTest_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR})
 set (SpeedTest_SYSTEM ${CMAKE_SYSTEM})
 

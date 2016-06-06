@@ -149,6 +149,27 @@ const double &SpeedTest::latency() {
     return mLatency;
 }
 
+const double SpeedTest::jitter(const ServerInfo &server, const int sample) {
+    auto client = SpeedTestClient(server);
+    double current_jitter = 0;
+    long previous_ms = -1;
+    if (client.connect()){
+        for (int i = 0; i < sample; i++){
+            long ms = 0;
+            if (client.ping(ms)){
+                if (previous_ms == -1) {
+                    previous_ms = ms;
+                } else {
+                    current_jitter += std::abs(previous_ms - ms);
+                }
+            }
+        }
+        client.close();
+    }
+
+    return std::floor(current_jitter / sample);
+}
+
 bool SpeedTest::share(const ServerInfo& server, std::string& image_url) {
     std::stringstream hash;
     hash << std::setprecision(0) << std::fixed << mLatency
@@ -414,4 +435,5 @@ ServerInfo SpeedTest::processServerXMLNode(xmlTextReaderPtr reader) {
 
     return ServerInfo();
 }
+
 

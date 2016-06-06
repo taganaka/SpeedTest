@@ -67,6 +67,7 @@ public:
     const double &latency();
     const double downloadSpeed(const ServerInfo& server, const TestConfig& config);
     const double uploadSpeed(const ServerInfo& server, const TestConfig& config);
+    const double jitter(const ServerInfo& server, const int sample = 40);
     bool share(const ServerInfo& server, std::string& image_url);
 private:
     static CURL* curl_setup(CURL* curl = nullptr);

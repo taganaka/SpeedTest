@@ -12,7 +12,9 @@ It supports the new (undocumented) raw TCP protocol for better accuracy.
 
 3. Aggressive multi-threading program in order to saturate your bandwidth quickly.
 
-4. Provide a URL to the speedtest.net share results image using option --share
+4. Test supported: Ping / Jitter / Download speed / Upload speed.
+
+5. Provide a URL to the speedtest.net share results image using option --share
 
 ## Installation
 

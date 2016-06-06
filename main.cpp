@@ -79,7 +79,8 @@ int main(const int argc, const char **argv) {
         << " by " << serverInfo.sponsor
         << " (" << serverInfo.distance << " km from you): "
         << sp.latency() << " ms" << std::endl;
-
+    std::cout << "Ping: " << sp.latency() << " ms." << std::endl;
+    std::cout << "Jitter: " << std::flush << sp.jitter(serverInfo) << " ms." << std::endl;
     if (latency_only)
         return EXIT_SUCCESS;
 
