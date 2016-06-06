@@ -64,18 +64,30 @@ const TestConfig broadbandConfigDownload = {
 };
 
 const TestConfig broadbandConfigUpload = {
-        1000000,   // start_size
+        1000000,  // start_size
         70000000, // max_size
-        250000,    // inc_size
-        65536,     // buff_size
-        20000,     // min_test_time_ms
+        250000,   // inc_size
+        65536,    // buff_size
+        20000,    // min_test_time_ms
         8,        // concurrency
 };
 
 const TestConfig fiberConfigDownload = {
+        5000000,   // start_size
+        120000000, // max_size
+        950000,    // inc_size
+        65536,     // buff_size
+        20000,     // min_test_time_ms
+        32,        // concurrency
 };
 
 const TestConfig fiberConfigUpload = {
+        2000000,   // start_size
+        70000000,  // max_size
+        350000,    // inc_size
+        65536,     // buff_size
+        20000,     // min_test_time_ms
+        16,        // concurrency
 };
 
 #endif //SPEEDTEST_TESTCONFIGTEMPLATE_H
