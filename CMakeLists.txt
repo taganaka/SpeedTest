@@ -16,7 +16,7 @@ set (SpeedTest_API_KEY "297aae72")
 
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wno-unused-result")
 
 set(SOURCE_FILES
         main.cpp
@@ -50,3 +50,5 @@ endif()
 
 include_directories(${CURL_INCLUDE_DIRS} ${LIBXML2_INCLUDE_DIR})
 target_link_libraries(SpeedTest ${CURL_LIBRARIES} ${LIBXML2_LIBRARIES} -lssl -lcrypto)
+
+install(TARGETS SpeedTest RUNTIME DESTINATION bin)
