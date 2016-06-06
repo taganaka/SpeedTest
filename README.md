@@ -57,3 +57,4 @@ optional arguments:
 	--upload    Perform upload test only. It includes latency test
 	--share     Generate and provide a URL to the speedtest.net share results image
 $
+```
