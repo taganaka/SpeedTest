@@ -5,13 +5,14 @@
 
 void banner(){
     std::cout << "SpeedTest++ version " << SpeedTest_VERSION_MAJOR << "." << SpeedTest_VERSION_MINOR << std::endl;
-    std::cout << "speedtest.net command line interface" << std::endl;
+    std::cout << "Speedtest.net command line interface" << std::endl;
+    std::cout << "Info: " << SpeedTest_HOME_PAGE << std::endl;
     std::cout << "Author: " << SpeedTest_AUTHOR << std::endl;
 }
 
 void usage(const char* name){
     std::cout << "usage: " << name << " ";
-    std::cout << "[--latency] [--download] [--upload] [--help]" << std::endl;
+    std::cout << "[--latency] [--download] [--upload] [--help] [--share]" << std::endl;
     std::cout << "optional arguments:" << std::endl;
     std::cout << "\t--help      Show this message and exit\n";
     std::cout << "\t--latency   Perform latency test only\n";
@@ -86,7 +87,7 @@ int main(const int argc, const char **argv) {
     if (sp.jitter(serverInfo, tjitter)){
         std::cout << tjitter << " ms." << std::endl;
     } else {
-        std::cout << "Jitter measurement is unable at this time." << std::endl;
+        std::cout << "Jitter measurement is unavailable at this time." << std::endl;
     }
 
     if (latency_only)

@@ -47,11 +47,12 @@ $ make install
 
 ```
 $ SpeedTest --help
-SpeedTest++ version 1.0
-speedtest.net command line interface
+SpeedTest++ version 1.2
+Speedtest.net command line interface
+Info: https://github.com/taganaka/SpeedTest
 Author: Francesco Laurita <francesco.laurita@gmail.com>
 
-usage: SpeedTest [--latency] [--download] [--upload] [--help]
+usage: ./SpeedTest [--latency] [--download] [--upload] [--help] [--share]
 optional arguments:
 	--help      Show this message and exit
 	--latency   Perform latency test only
