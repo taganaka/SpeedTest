@@ -133,23 +133,25 @@ const ServerInfo SpeedTest::bestServer(const int sample_size) {
     return bestServer;
 }
 
-const double SpeedTest::downloadSpeed(const ServerInfo &server, const TestConfig &config) {
+bool SpeedTest::downloadSpeed(const ServerInfo &server, const TestConfig &config, double& result) {
     opFn pfunc = &SpeedTestClient::download;
     mDownloadSpeed = execute(server, config, pfunc);
-    return mDownloadSpeed;
+    result = mDownloadSpeed;
+    return true;
 }
 
-const double SpeedTest::uploadSpeed(const ServerInfo &server, const TestConfig &config) {
+bool SpeedTest::uploadSpeed(const ServerInfo &server, const TestConfig &config, double& result) {
     opFn pfunc = &SpeedTestClient::upload;
     mUploadSpeed = execute(server, config, pfunc);
-    return mUploadSpeed;
+    result = mUploadSpeed;
+    return true;
 }
 
 const double &SpeedTest::latency() {
     return mLatency;
 }
 
-const double SpeedTest::jitter(const ServerInfo &server, const int sample) {
+bool SpeedTest::jitter(const ServerInfo &server, long& result, const int sample) {
     auto client = SpeedTestClient(server);
     double current_jitter = 0;
     long previous_ms = -1;
@@ -165,9 +167,12 @@ const double SpeedTest::jitter(const ServerInfo &server, const int sample) {
             }
         }
         client.close();
+    } else {
+        return false;
     }
 
-    return std::floor(current_jitter / sample);
+    result = (long) std::floor(current_jitter / sample);
+    return true;
 }
 
 bool SpeedTest::share(const ServerInfo& server, std::string& image_url) {

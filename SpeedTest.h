@@ -65,9 +65,9 @@ public:
     const std::vector<ServerInfo>& serverList();
     const ServerInfo bestServer(const int sample_size = 5);
     const double &latency();
-    const double downloadSpeed(const ServerInfo& server, const TestConfig& config);
-    const double uploadSpeed(const ServerInfo& server, const TestConfig& config);
-    const double jitter(const ServerInfo& server, const int sample = 40);
+    bool downloadSpeed(const ServerInfo& server, const TestConfig& config, double& result);
+    bool uploadSpeed(const ServerInfo& server, const TestConfig& config, double& result);
+    bool jitter(const ServerInfo& server, long& result, const int sample = 40);
     bool share(const ServerInfo& server, std::string& image_url);
 private:
     static CURL* curl_setup(CURL* curl = nullptr);

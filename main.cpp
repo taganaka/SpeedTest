@@ -80,13 +80,25 @@ int main(const int argc, const char **argv) {
         << " (" << serverInfo.distance << " km from you): "
         << sp.latency() << " ms" << std::endl;
     std::cout << "Ping: " << sp.latency() << " ms." << std::endl;
-    std::cout << "Jitter: " << std::flush << sp.jitter(serverInfo) << " ms." << std::endl;
+
+    long tjitter = 0;
+    std::cout << "Jitter: " << std::flush;
+    if (sp.jitter(serverInfo, tjitter)){
+        std::cout << tjitter << " ms." << std::endl;
+    } else {
+        std::cout << "Jitter measurement is unable at this time." << std::endl;
+    }
+
     if (latency_only)
         return EXIT_SUCCESS;
 
 
     std::cout << "Determine line type (" << preflightConfigDownload.concurrency << ") "  << std::flush;
-    auto preSpeed = sp.downloadSpeed(serverInfo, preflightConfigDownload);
+    double preSpeed = 0;
+    if (!sp.downloadSpeed(serverInfo, preflightConfigDownload, preSpeed)){
+        std::cerr << "Pre-flight check failed." << std::endl;
+        return EXIT_FAILURE;
+    }
     std::cout << std::endl;
 
     TestConfig uploadConfig   = slowConfigUpload;
@@ -110,10 +122,16 @@ int main(const int argc, const char **argv) {
     if (!upload_only){
         std::cout << std::endl;
         std::cout << "Testing download speed (" << downloadConfig.concurrency << ") "  << std::flush;
-        auto downloadSpeed = sp.downloadSpeed(serverInfo, downloadConfig);
+        double downloadSpeed = 0;
+        if (sp.downloadSpeed(serverInfo, downloadConfig, downloadSpeed)){
+            std::cout << std::endl;
+            std::cout << "Download: " << downloadSpeed << " Mbit/s" << std::endl;
+        } else {
+            std::cerr << "Download test failed." << std::endl;
+            return EXIT_FAILURE;
+        }
 
-        std::cout << std::endl;
-        std::cout << "Download: " << downloadSpeed << " Mbit/s" << std::endl;
+
     }
 
     if (download_only)
@@ -121,9 +139,15 @@ int main(const int argc, const char **argv) {
 
 
     std::cout << "Testing upload speed (" << uploadConfig.concurrency << ") "  << std::flush;
-    auto uploadSpeed = sp.uploadSpeed(serverInfo, uploadConfig);
-    std::cout << std::endl;
-    std::cout << "Upload: " << uploadSpeed << " Mbit/s" << std::endl;
+    double uploadSpeed = 0;
+    if (sp.uploadSpeed(serverInfo, uploadConfig, uploadSpeed)){
+        std::cout << std::endl;
+        std::cout << "Upload: " << uploadSpeed << " Mbit/s" << std::endl;
+    } else {
+        std::cerr << "Upload test failed." << std::endl;
+        return EXIT_FAILURE;
+    }
+
 
     if (share){
         std::string share_it;
