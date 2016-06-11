@@ -12,7 +12,7 @@ It supports the new (undocumented) raw TCP protocol for better accuracy.
 
 3. Aggressive multi-threading program in order to saturate your bandwidth quickly.
 
-4. Test supported: Ping / Jitter / Download speed / Upload speed.
+4. Test supported: Ping / Jitter / Download speed / Upload speed / Packet loss (UDP).
 
 5. Provide a URL to the speedtest.net share results image using option --share
 
@@ -47,7 +47,7 @@ $ make install
 
 ```
 $ SpeedTest --help
-SpeedTest++ version 1.2
+SpeedTest++ version 1.3
 Speedtest.net command line interface
 Info: https://github.com/taganaka/SpeedTest
 Author: Francesco Laurita <francesco.laurita@gmail.com>
@@ -55,7 +55,7 @@ Author: Francesco Laurita <francesco.laurita@gmail.com>
 usage: ./SpeedTest [--latency] [--download] [--upload] [--help] [--share]
 optional arguments:
 	--help      Show this message and exit
-	--latency   Perform latency test only
+	--latency   Perform latency / Jitter / Packet loss test only
 	--download  Perform download test only. It includes latency test
 	--upload    Perform upload test only. It includes latency test
 	--share     Generate and provide a URL to the speedtest.net share results image

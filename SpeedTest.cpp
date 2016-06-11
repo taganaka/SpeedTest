@@ -5,25 +5,29 @@
 #include <cmath>
 #include <iomanip>
 #include "SpeedTest.h"
-#include "SpeedTestClient.h"
 #include "MD5Util.h"
 
-SpeedTest::SpeedTest(): mLatency(0), mUploadSpeed(0), mDownloadSpeed(0) {
+SpeedTest::SpeedTest():
+        mLatency(0),
+        mQualityLatency(0),
+        mUploadSpeed(0),
+        mDownloadSpeed(0) {
     curl_global_init(CURL_GLOBAL_DEFAULT);
     mIpInfo = IPInfo();
     mServerList = std::vector<ServerInfo>();
+    mServerQualityList = std::vector<ServerInfo>();
 }
 
 SpeedTest::~SpeedTest() {
     curl_global_cleanup();
+    mServerList.clear();
+    mServerQualityList.clear();
 }
 
-bool SpeedTest::ipInfo(IPInfo *info) {
-    if (!info)
-        return false;
+bool SpeedTest::ipInfo(IPInfo& info) {
 
     if (!mIpInfo.ip_address.empty()){
-        *info = mIpInfo;
+        info = mIpInfo;
         return true;
     }
 
@@ -38,7 +42,7 @@ bool SpeedTest::ipInfo(IPInfo *info) {
         mIpInfo.lon = std::stof(values["lon"]);
         values.clear();
         oss.clear();
-        *info = mIpInfo;
+        info = mIpInfo;
         return true;
     }
 
@@ -48,118 +52,70 @@ bool SpeedTest::ipInfo(IPInfo *info) {
 const std::vector<ServerInfo>& SpeedTest::serverList() {
     if (!mServerList.empty())
         return mServerList;
-    std::stringstream oss;
 
-    auto cres = httpGet(SPEED_TEST_SERVER_LIST_URL, oss);
-    if (cres != CURLE_OK)
+    int http_code = 0;
+    if (fetchServers(SPEED_TEST_SERVER_LIST_URL, mServerList, http_code) && http_code == 200){
         return mServerList;
-
-    size_t len = oss.str().length();
-    char *xmlbuff = (char*)calloc(len + 1, sizeof(char));
-    memcpy(xmlbuff, oss.str().c_str(), len + 1);
-
-    oss.str("");
-    oss.clear();
-    xmlTextReaderPtr reader = xmlReaderForMemory(xmlbuff, static_cast<int>(len), nullptr, nullptr, 0);
-
-    if (reader != nullptr) {
-        IPInfo ipInfo;
-        if (!SpeedTest::ipInfo(&ipInfo)){
-            xmlFreeTextReader(reader);
-            return mServerList;
-        }
-        auto ret = xmlTextReaderRead(reader);
-        while (ret == 1) {
-            ServerInfo info = processServerXMLNode(reader);
-            if (!info.url.empty()){
-                info.distance = harversine(std::make_pair(ipInfo.lat, ipInfo.lon), std::make_pair(info.lat, info.lon));
-                mServerList.push_back(info);
-            }
-            ret = xmlTextReaderRead(reader);
-        }
-        xmlFreeTextReader(reader);
-        if (ret != 0) {
-            std::cerr << "Failed to parse" << std::endl;
-        }
-    } else {
-        std::cerr << "Unable to initialize xml parser" << std::endl;
     }
-
-    free(xmlbuff);
-    xmlCleanupParser();
-
-    std::sort(mServerList.begin(), mServerList.end(), [](const ServerInfo &a, const ServerInfo &b) -> bool {
-        return a.distance < b.distance;
-    });
     return mServerList;
 }
 
-const ServerInfo SpeedTest::bestServer(const int sample_size) {
-    int i = sample_size;
-    ServerInfo bestServer = serverList()[0];
+const std::vector<ServerInfo> &SpeedTest::serverQualityList() {
+    if (!mServerQualityList.empty())
+        return mServerQualityList;
 
-    long best_latency = 1000;
-    long latency = 0;
-    for (auto &server : serverList()){
-        auto client = SpeedTestClient(server);
-
-        if (!client.connect()){
-            std::cout << "E" << std::flush;
-            continue;
-        }
-
-        long current_latency = 1000;
-        for (int j = 0; j < 20; j++){
-            if (client.ping(latency)){
-                if (current_latency > latency)
-                    current_latency = latency;
-            } else {
-                std::cout << "E" << std::flush;
-            }
-        }
-        client.close();
-        std::cout << "." << std::flush;
-        if (best_latency > current_latency ){
-            best_latency = current_latency;
-            bestServer = server;
-            mLatency = best_latency;
-        }
-
-        if (i-- < 0){
-            break;
-        }
-
+    int http_code = 0;
+    if (fetchServers(SPEED_TEST_SERVER_QUALITY_LIST_URL, mServerQualityList, http_code) && http_code == 200){
+        return mServerQualityList;
     }
-    return bestServer;
+    mServerQualityList.empty();
+    return mServerQualityList;
+
 }
 
-bool SpeedTest::downloadSpeed(const ServerInfo &server, const TestConfig &config, double& result) {
+const ServerInfo SpeedTest::bestServer(const int sample_size, progressFn cb) {
+    auto best = findBestServerWithin(serverList(), mLatency, sample_size, cb);
+    SpeedTestClient client = SpeedTestClient(best);
+    testLatency(client, 100, mLatency);
+    client.close();
+    return best;
+}
+
+const ServerInfo SpeedTest::bestQualityServer(const int sample_size, progressFn cb) {
+    auto best = findBestServerWithin(serverQualityList(), mQualityLatency, sample_size, cb);
+    SpeedTestClient client = SpeedTestClient(best, true);
+    testLatency(client, 100, mQualityLatency);
+    client.close();
+    return best;
+}
+
+bool SpeedTest::downloadSpeed(const ServerInfo &server, const TestConfig &config, double& result, progressFn cb) {
     opFn pfunc = &SpeedTestClient::download;
-    mDownloadSpeed = execute(server, config, pfunc);
+    mDownloadSpeed = execute(server, config, pfunc, cb);
     result = mDownloadSpeed;
     return true;
 }
 
-bool SpeedTest::uploadSpeed(const ServerInfo &server, const TestConfig &config, double& result) {
+bool SpeedTest::uploadSpeed(const ServerInfo &server, const TestConfig &config, double& result, progressFn cb) {
     opFn pfunc = &SpeedTestClient::upload;
-    mUploadSpeed = execute(server, config, pfunc);
+    mUploadSpeed = execute(server, config, pfunc, cb);
     result = mUploadSpeed;
     return true;
 }
 
-const double &SpeedTest::latency() {
+const int &SpeedTest::latency() {
     return mLatency;
 }
 
 bool SpeedTest::jitter(const ServerInfo &server, long& result, const int sample) {
     auto client = SpeedTestClient(server);
     double current_jitter = 0;
-    long previous_ms = -1;
+    long previous_ms =  LONG_MAX;
     if (client.connect()){
         for (int i = 0; i < sample; i++){
             long ms = 0;
             if (client.ping(ms)){
-                if (previous_ms == -1) {
+                if (previous_ms == LONG_MAX) {
                     previous_ms = ms;
                 } else {
                     current_jitter += std::abs(previous_ms - ms);
@@ -174,6 +130,19 @@ bool SpeedTest::jitter(const ServerInfo &server, long& result, const int sample)
     result = (long) std::floor(current_jitter / sample);
     return true;
 }
+
+bool SpeedTest::packetLoss(const ServerInfo &server, int &result, progressFn cb) {
+    auto client = SpeedTestClient(server, true);
+    if (client.connect()){
+        if (client.ploss(250, mQualityLatency, result)){
+            client.close();
+            return true;
+        }
+    }
+    client.close();
+    return false;
+}
+
 
 bool SpeedTest::share(const ServerInfo& server, std::string& image_url) {
     std::stringstream hash;
@@ -216,12 +185,12 @@ bool SpeedTest::share(const ServerInfo& server, std::string& image_url) {
 
 // private
 
-double SpeedTest::execute(const ServerInfo &server, const TestConfig &config, const opFn &pfunc) {
+double SpeedTest::execute(const ServerInfo &server, const TestConfig &config, const opFn &pfunc, progressFn cb) {
     std::vector<std::thread> workers;
     double overall_speed = 0;
     std::mutex mtx;
     for (int i = 0; i < config.concurrency; i++) {
-        workers.push_back(std::thread([&server, &overall_speed, &pfunc, &config, &mtx](){
+        workers.push_back(std::thread([&server, &overall_speed, &pfunc, &config, &mtx, cb](){
             long start_size = config.start_size;
             long max_size   = config.max_size;
             long incr_size  = config.incr_size;
@@ -241,9 +210,11 @@ double SpeedTest::execute(const ServerInfo &server, const TestConfig &config, co
                         total_time += op_time;
                         double metric = (curr_size * 8) / (static_cast<double>(op_time) / 1000);
                         partial_results.push_back(metric);
-                        std::cout << "." << std::flush;
+                        if (cb)
+                            cb(true);
                     } else {
-                        std::cout << "E" << std::flush;
+                        if (cb)
+                            cb(false);
                     }
                     curr_size += incr_size;
                     if ((SpeedTestClient::now() - start) > config.min_test_time_ms)
@@ -270,7 +241,8 @@ double SpeedTest::execute(const ServerInfo &server, const TestConfig &config, co
                 overall_speed += (real_sum / iter);
                 mtx.unlock();
             } else {
-                std::cout << "E" << std::flush;
+                if (cb)
+                    cb(false);
             }
         }));
 
@@ -407,25 +379,47 @@ ServerInfo SpeedTest::processServerXMLNode(xmlTextReaderPtr reader) {
 
     if (xmlTextReaderAttributeCount(reader) > 0){
         auto info = ServerInfo();
-        auto server_url     = xmlTextReaderGetAttribute(reader, BAD_CAST "url");
-        auto server_lat     = xmlTextReaderGetAttribute(reader, BAD_CAST "lat");
-        auto server_lon     = xmlTextReaderGetAttribute(reader, BAD_CAST "lon");
-        auto server_name    = xmlTextReaderGetAttribute(reader, BAD_CAST "name");
-        auto server_county  = xmlTextReaderGetAttribute(reader, BAD_CAST "country");
-        auto server_cc      = xmlTextReaderGetAttribute(reader, BAD_CAST "cc");
-        auto server_host    = xmlTextReaderGetAttribute(reader, BAD_CAST "host");
-        auto server_id      = xmlTextReaderGetAttribute(reader, BAD_CAST "id");
-        auto server_sponsor = xmlTextReaderGetAttribute(reader, BAD_CAST "sponsor");
+        auto server_url         = xmlTextReaderGetAttribute(reader, BAD_CAST "url");
+        auto server_lat         = xmlTextReaderGetAttribute(reader, BAD_CAST "lat");
+        auto server_lon         = xmlTextReaderGetAttribute(reader, BAD_CAST "lon");
+        auto server_name        = xmlTextReaderGetAttribute(reader, BAD_CAST "name");
+        auto server_county      = xmlTextReaderGetAttribute(reader, BAD_CAST "country");
+        auto server_cc          = xmlTextReaderGetAttribute(reader, BAD_CAST "cc");
+        auto server_host        = xmlTextReaderGetAttribute(reader, BAD_CAST "host");
+        auto server_id          = xmlTextReaderGetAttribute(reader, BAD_CAST "id");
+        auto server_sponsor     = xmlTextReaderGetAttribute(reader, BAD_CAST "sponsor");
+        auto server_linequality = xmlTextReaderGetAttribute(reader, BAD_CAST "linequality");
 
-        info.name.append((char*)server_name);
-        info.url.append((char*)server_url);
-        info.country.append((char*)server_county);
-        info.country_code.append((char*)server_cc);
-        info.host.append((char*)server_host);
-        info.sponsor.append((char*)server_sponsor);
-        info.id  = std::atoi((char*)server_id);
-        info.lat = std::stof((char*)server_lat);
-        info.lon = std::stof((char*)server_lon);
+        if (server_name)
+            info.name.append((char*)server_name);
+
+        if (server_url)
+            info.url.append((char*)server_url);
+
+        if (server_county)
+            info.country.append((char*)server_county);
+
+        if (server_cc)
+            info.country_code.append((char*)server_cc);
+
+        if (server_host)
+            info.host.append((char*)server_host);
+
+        if (server_sponsor)
+            info.sponsor.append((char*)server_sponsor);
+
+        if (server_linequality)
+            info.linequality.append((char*)server_linequality);
+
+        if (server_id)
+            info.id  = std::atoi((char*)server_id);
+
+        if (server_lat)
+            info.lat = std::stof((char*)server_lat);
+
+        if (server_lon)
+            info.lon = std::stof((char*)server_lon);
+
         xmlFree(server_url);
         xmlFree(server_lat);
         xmlFree(server_lon);
@@ -435,10 +429,132 @@ ServerInfo SpeedTest::processServerXMLNode(xmlTextReaderPtr reader) {
         xmlFree(server_host);
         xmlFree(server_id);
         xmlFree(server_sponsor);
+        xmlFree(server_linequality);
         return info;
     }
 
     return ServerInfo();
 }
 
+bool SpeedTest::fetchServers(const std::string& url, std::vector<ServerInfo>& target, int &http_code) {
+    std::stringstream oss;
+    target.clear();
+
+    CURL* curl = curl_easy_init();
+    auto cres = httpGet(url, oss, curl, 20);
+    if (cres != CURLE_OK)
+        return false;
+
+    int req_status;
+    curl_easy_getinfo(curl, CURLINFO_HTTP_CODE, &req_status);
+    http_code = req_status;
+
+    if (http_code != 200){
+        curl_easy_cleanup(curl);
+        return false;
+    }
+
+    size_t len = oss.str().length();
+    char *xmlbuff = (char*)calloc(len + 1, sizeof(char));
+    if (!xmlbuff){
+        std::cerr << "Unable to calloc" << std::endl;
+        curl_easy_cleanup(curl);
+        return false;
+    }
+    memcpy(xmlbuff, oss.str().c_str(), len);
+
+    oss.str("");
+    oss.clear();
+    xmlTextReaderPtr reader = xmlReaderForMemory(xmlbuff, static_cast<int>(len), nullptr, nullptr, 0);
+
+    if (reader != nullptr) {
+        IPInfo ipInfo;
+        if (!SpeedTest::ipInfo(ipInfo)){
+            free(xmlbuff);
+            xmlFreeTextReader(reader);
+            std::cerr << "OOPS!" <<std::endl;
+            return false;
+        }
+        auto ret = xmlTextReaderRead(reader);
+        while (ret == 1) {
+            ServerInfo info = processServerXMLNode(reader);
+            if (!info.url.empty()){
+                info.distance = harversine(std::make_pair(ipInfo.lat, ipInfo.lon), std::make_pair(info.lat, info.lon));
+                target.push_back(info);
+            }
+            ret = xmlTextReaderRead(reader);
+        }
+        xmlFreeTextReader(reader);
+        if (ret != 0) {
+            std::cerr << "Failed to parse" << std::endl;
+            free(xmlbuff);
+            return false;
+        }
+    } else {
+        std::cerr << "Unable to initialize xml parser" << std::endl;
+        free(xmlbuff);
+        return false;
+    }
+
+    free(xmlbuff);
+    xmlCleanupParser();
+    std::sort(target.begin(), target.end(), [](const ServerInfo &a, const ServerInfo &b) -> bool {
+        return a.distance < b.distance;
+    });
+    return true;
+}
+
+const ServerInfo SpeedTest::findBestServerWithin(const std::vector<ServerInfo> &serverList, int &latency,
+                                                 const int sample_size, progressFn cb) {
+    int i = sample_size;
+    ServerInfo bestServer = serverList[0];
+
+    latency = INT_MAX;
+
+    for (auto &server : serverList){
+        auto client = SpeedTestClient(server, !server.linequality.empty());
+
+        if (!client.connect()){
+            if (cb)
+                cb(false);
+            std::cout << "E" << std::flush;
+            continue;
+        }
+
+        int current_latency = INT_MAX;
+        if (testLatency(client, 20, current_latency)){
+            if (current_latency < latency){
+                latency = current_latency;
+                bestServer = server;
+            }
+        }
+        client.close();
+        if (cb)
+            cb(true);
+
+        if (i-- < 0){
+            break;
+        }
+
+    }
+    return bestServer;
+}
+
+bool SpeedTest::testLatency(SpeedTestClient &client, const int sample_size, int &latency) {
+    if (!client.connect()){
+        return false;
+    }
+    latency = INT_MAX;
+    long temp_latency = 0;
+    for (int i = 0; i < sample_size; i++){
+        if (client.ping(temp_latency)){
+            if (temp_latency < latency){
+                latency = temp_latency;
+            }
+        } else {
+            return false;
+        }
+    }
+    return true;
+}
 

@@ -3,6 +3,7 @@
 #include "SpeedTest.h"
 #include "TestConfigTemplate.h"
 
+
 void banner(){
     std::cout << "SpeedTest++ version " << SpeedTest_VERSION_MAJOR << "." << SpeedTest_VERSION_MINOR << std::endl;
     std::cout << "Speedtest.net command line interface" << std::endl;
@@ -56,7 +57,7 @@ int main(const int argc, const char **argv) {
 
     auto sp = SpeedTest();
     IPInfo info;
-    if (!sp.ipInfo(&info)){
+    if (!sp.ipInfo(info)){
         std::cerr << "Unable to retrieve your IP info. Try again later" << std::endl;
         return EXIT_FAILURE;
     }
@@ -74,7 +75,10 @@ int main(const int argc, const char **argv) {
     std::cout << serverList.size() << " Servers online" << std::endl;
 
 
-    ServerInfo serverInfo = sp.bestServer(10);
+    ServerInfo serverInfo = sp.bestServer(10, [](bool success) {
+        std::cout << (success ? '.' : '*') << std::flush;
+    });
+
     std::cout << std::endl;
     std::cout << "Server: " << serverInfo.name
         << " by " << serverInfo.sponsor
@@ -82,12 +86,32 @@ int main(const int argc, const char **argv) {
         << sp.latency() << " ms" << std::endl;
     std::cout << "Ping: " << sp.latency() << " ms." << std::endl;
 
-    long tjitter = 0;
+    long jitter = 0;
     std::cout << "Jitter: " << std::flush;
-    if (sp.jitter(serverInfo, tjitter)){
-        std::cout << tjitter << " ms." << std::endl;
+    if (sp.jitter(serverInfo, jitter)){
+        std::cout << jitter << " ms." << std::endl;
     } else {
         std::cout << "Jitter measurement is unavailable at this time." << std::endl;
+    }
+
+    std::cout << "Finding fastest server for packet loss measurement... " << std::flush;
+    auto serverQualityList = sp.serverQualityList();
+
+    if (serverQualityList.empty()){
+        std::cerr << "Unable to download server list. Packet loss analysis is not available at this time" << std::endl;
+    } else {
+        std::cout << serverQualityList.size() << " Ping hosts online" << std::endl;
+        ServerInfo serverQualityInfo = sp.bestQualityServer(5, [](bool success){
+            std::cout << (success ? '.' : '*') << std::flush;
+        });
+        std::cout << std::endl;
+        std::cout << "Server: " << serverQualityInfo.name
+        << " by " << serverQualityInfo.sponsor
+        << " (" << serverQualityInfo.distance << " km from you): " << std::endl;
+        int ploss = 0;
+        if (sp.packetLoss(serverQualityInfo, ploss)){
+            std::cout << "Packets loss: " << ploss << std::endl;
+        }
     }
 
     if (latency_only)
@@ -96,7 +120,9 @@ int main(const int argc, const char **argv) {
 
     std::cout << "Determine line type (" << preflightConfigDownload.concurrency << ") "  << std::flush;
     double preSpeed = 0;
-    if (!sp.downloadSpeed(serverInfo, preflightConfigDownload, preSpeed)){
+    if (!sp.downloadSpeed(serverInfo, preflightConfigDownload, preSpeed, [](bool success){
+        std::cout << (success ? '.' : '*') << std::flush;
+    })){
         std::cerr << "Pre-flight check failed." << std::endl;
         return EXIT_FAILURE;
     }
@@ -124,15 +150,15 @@ int main(const int argc, const char **argv) {
         std::cout << std::endl;
         std::cout << "Testing download speed (" << downloadConfig.concurrency << ") "  << std::flush;
         double downloadSpeed = 0;
-        if (sp.downloadSpeed(serverInfo, downloadConfig, downloadSpeed)){
+        if (sp.downloadSpeed(serverInfo, downloadConfig, downloadSpeed, [](bool success){
+            std::cout << (success ? '.' : '*') << std::flush;
+        })){
             std::cout << std::endl;
             std::cout << "Download: " << downloadSpeed << " Mbit/s" << std::endl;
         } else {
             std::cerr << "Download test failed." << std::endl;
             return EXIT_FAILURE;
         }
-
-
     }
 
     if (download_only)
@@ -141,7 +167,9 @@ int main(const int argc, const char **argv) {
 
     std::cout << "Testing upload speed (" << uploadConfig.concurrency << ") "  << std::flush;
     double uploadSpeed = 0;
-    if (sp.uploadSpeed(serverInfo, uploadConfig, uploadSpeed)){
+    if (sp.uploadSpeed(serverInfo, uploadConfig, uploadSpeed, [](bool success){
+        std::cout << (success ? '.' : '*') << std::flush;
+    })){
         std::cout << std::endl;
         std::cout << "Upload: " << uploadSpeed << " Mbit/s" << std::endl;
     } else {
