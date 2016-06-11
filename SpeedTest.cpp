@@ -470,6 +470,7 @@ bool SpeedTest::fetchServers(const std::string& url, std::vector<ServerInfo>& ta
     if (reader != nullptr) {
         IPInfo ipInfo;
         if (!SpeedTest::ipInfo(ipInfo)){
+            curl_easy_cleanup(curl);
             free(xmlbuff);
             xmlFreeTextReader(reader);
             std::cerr << "OOPS!" <<std::endl;
@@ -486,16 +487,19 @@ bool SpeedTest::fetchServers(const std::string& url, std::vector<ServerInfo>& ta
         }
         xmlFreeTextReader(reader);
         if (ret != 0) {
-            std::cerr << "Failed to parse" << std::endl;
+            curl_easy_cleanup(curl);
             free(xmlbuff);
+            std::cerr << "Failed to parse" << std::endl;
             return false;
         }
     } else {
         std::cerr << "Unable to initialize xml parser" << std::endl;
+        curl_easy_cleanup(curl);
         free(xmlbuff);
         return false;
     }
 
+    curl_easy_cleanup(curl);
     free(xmlbuff);
     xmlCleanupParser();
     std::sort(target.begin(), target.end(), [](const ServerInfo &a, const ServerInfo &b) -> bool {
