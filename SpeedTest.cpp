@@ -84,7 +84,8 @@ const ServerInfo SpeedTest::bestServer(const int sample_size, progressFn cb) {
 const ServerInfo SpeedTest::bestQualityServer(const int sample_size, progressFn cb) {
     auto best = findBestServerWithin(serverQualityList(), mQualityLatency, sample_size, cb);
     SpeedTestClient client = SpeedTestClient(best, true);
-    testLatency(client, 100, mQualityLatency);
+    auto wait_for = mQualityLatency + 5;
+    testLatency(client, 100, wait_for);
     client.close();
     return best;
 }
