@@ -202,7 +202,7 @@ bool SpeedTestClient::mkSocket() {
 
     /* Dial */
     if (::connect(mSocketFd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
-        std::cerr << "::connect() error" << std::endl;
+        perror("::connect() error");
         return false;
     }
     return true;

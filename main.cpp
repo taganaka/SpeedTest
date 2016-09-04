@@ -1,5 +1,6 @@
 #include <iostream>
 #include <map>
+#include <iomanip>
 #include "SpeedTest.h"
 #include "TestConfigTemplate.h"
 
@@ -154,7 +155,10 @@ int main(const int argc, const char **argv) {
             std::cout << (success ? '.' : '*') << std::flush;
         })){
             std::cout << std::endl;
-            std::cout << "Download: " << downloadSpeed << " Mbit/s" << std::endl;
+            std::cout << "Download: ";
+            std::cout << std::fixed;
+            std::cout << std::setprecision(2);
+            std::cout << downloadSpeed << " Mbit/s" << std::endl;
         } else {
             std::cerr << "Download test failed." << std::endl;
             return EXIT_FAILURE;
@@ -171,7 +175,10 @@ int main(const int argc, const char **argv) {
         std::cout << (success ? '.' : '*') << std::flush;
     })){
         std::cout << std::endl;
-        std::cout << "Upload: " << uploadSpeed << " Mbit/s" << std::endl;
+        std::cout << "Upload: ";
+        std::cout << std::fixed;
+        std::cout << std::setprecision(2);
+        std::cout << uploadSpeed << " Mbit/s" << std::endl;
     } else {
         std::cerr << "Upload test failed." << std::endl;
         return EXIT_FAILURE;
