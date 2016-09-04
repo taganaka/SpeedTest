@@ -24,6 +24,7 @@ It supports the new (undocumented) raw TCP protocol for better accuracy.
 2. cmake
 3. libcurl
 4. libssl
+5. libxml2
 
 ### On Mac OS X
 
@@ -37,7 +38,7 @@ $ make install
 ### On Ubuntu/Debian
 
 ```
-$ sudo apt-get install build-essentials ﻿libcurl4-openssl-dev libssl-dev cmake
+$ sudo apt-get install build-essentials libcurl4-openssl-dev libxml2-dev libssl-dev cmake
 $ cd cmake_build
 $ cmake -DCMAKE_BUILD_TYPE=Release ..
 $ make install
@@ -47,7 +48,7 @@ $ make install
 
 ```
 $ SpeedTest --help
-SpeedTest++ version 1.3
+SpeedTest++ version 1.6
 Speedtest.net command line interface
 Info: https://github.com/taganaka/SpeedTest
 Author: Francesco Laurita <francesco.laurita@gmail.com>
@@ -61,3 +62,7 @@ optional arguments:
 	--share     Generate and provide a URL to the speedtest.net share results image
 $
 ```
+
+## License
+
+SpeedTest++ is available as open source program under the terms of the [MIT License](http://opensource.org/licenses/MIT).
