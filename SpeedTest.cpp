@@ -463,9 +463,8 @@ bool SpeedTest::fetchServers(const std::string& url, std::vector<ServerInfo>& ta
         return false;
     }
     memcpy(xmlbuff, oss.str().c_str(), len);
-
     oss.str("");
-    oss.clear();
+
     xmlTextReaderPtr reader = xmlReaderForMemory(xmlbuff, static_cast<int>(len), nullptr, nullptr, 0);
 
     if (reader != nullptr) {
