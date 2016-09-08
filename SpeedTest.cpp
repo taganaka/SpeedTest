@@ -7,7 +7,7 @@
 #include "SpeedTest.h"
 #include "MD5Util.h"
 
-SpeedTest::SpeedTest():
+SpeedTest::SpeedTest(float minServerVersion):
         mLatency(0),
         mQualityLatency(0),
         mUploadSpeed(0),
@@ -16,6 +16,7 @@ SpeedTest::SpeedTest():
     mIpInfo = IPInfo();
     mServerList = std::vector<ServerInfo>();
     mServerQualityList = std::vector<ServerInfo>();
+    mMinSupportedServer = minServerVersion;
 }
 
 SpeedTest::~SpeedTest() {
@@ -76,7 +77,7 @@ const std::vector<ServerInfo> &SpeedTest::serverQualityList() {
 const ServerInfo SpeedTest::bestServer(const int sample_size, progressFn cb) {
     auto best = findBestServerWithin(serverList(), mLatency, sample_size, cb);
     SpeedTestClient client = SpeedTestClient(best);
-    testLatency(client, 100, mLatency);
+    testLatency(client, 80, mLatency);
     client.close();
     return best;
 }
@@ -85,7 +86,7 @@ const ServerInfo SpeedTest::bestQualityServer(const int sample_size, progressFn 
     auto best = findBestServerWithin(serverQualityList(), mQualityLatency, sample_size, cb);
     SpeedTestClient client = SpeedTestClient(best, true);
     auto wait_for = mQualityLatency + 5;
-    testLatency(client, 100, wait_for);
+    testLatency(client, 80, wait_for);
     client.close();
     return best;
 }
@@ -522,6 +523,11 @@ const ServerInfo SpeedTest::findBestServerWithin(const std::vector<ServerInfo> &
             if (cb)
                 cb(false);
             std::cout << "E" << std::flush;
+            continue;
+        }
+
+        if (client.version() < mMinSupportedServer){
+            client.close();
             continue;
         }
 
