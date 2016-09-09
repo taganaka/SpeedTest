@@ -49,8 +49,8 @@ bool SpeedTestClient::connect() {
             close();
             return false;
         }
-        std::string cmp = "HELLO";
-        if (!reply.empty() && reply.compare(0, cmp.length(), cmp) == 0){
+
+        if (!reply.empty() && "HELLO" == hello){
             return true;
         }
 
