@@ -39,4 +39,5 @@ typedef struct test_config_t {
     long min_test_time_ms;
     int  concurrency;
 } TestConfig;
+
 #endif //SPEEDTEST_DATATYPES_H

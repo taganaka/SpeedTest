@@ -3,7 +3,7 @@
 #include <iomanip>
 #include "SpeedTest.h"
 #include "TestConfigTemplate.h"
-
+#include "CmdOptions.h"
 
 
 void banner(){
@@ -26,35 +26,22 @@ void usage(const char* name){
 
 int main(const int argc, const char **argv) {
 
-    bool download_only = false;
-    bool upload_only   = false;
-    bool latency_only  = false;
-    bool share         = false;
+    ProgramOptions programOptions;
 
-    std::vector<std::string> options;
-
-    for (int i = 0; i < argc; i++)
-        options.push_back(std::string(argv[i]));
+    if (!ParseOptions(argc, argv, programOptions)){
+        usage(argv[0]);
+        return EXIT_FAILURE;
+    }
 
     banner();
     std::cout << std::endl;
 
-    if (std::find(options.begin(), options.end(), "--help") != options.end()) {
+    if (programOptions.help) {
         usage(argv[0]);
         return EXIT_SUCCESS;
     }
 
-    if (std::find(options.begin(), options.end(), "--latency") != options.end())
-        latency_only = true;
 
-    if (std::find(options.begin(), options.end(), "--download") != options.end())
-        download_only = true;
-
-    if (std::find(options.begin(), options.end(), "--upload") != options.end())
-        upload_only = true;
-
-    if (std::find(options.begin(), options.end(), "--share") != options.end())
-        share = true;
 
 
     auto sp = SpeedTest(SPEED_TEST_MIN_SERVER_VERSION);
@@ -116,7 +103,7 @@ int main(const int argc, const char **argv) {
         }
     }
 
-    if (latency_only)
+    if (programOptions.latency)
         return EXIT_SUCCESS;
 
 
@@ -148,7 +135,7 @@ int main(const int argc, const char **argv) {
         uploadConfig   = fiberConfigUpload;
     }
 
-    if (!upload_only){
+    if (!programOptions.upload){
         std::cout << std::endl;
         std::cout << "Testing download speed (" << downloadConfig.concurrency << ") "  << std::flush;
         double downloadSpeed = 0;
@@ -166,7 +153,7 @@ int main(const int argc, const char **argv) {
         }
     }
 
-    if (download_only)
+    if (programOptions.download)
         return EXIT_SUCCESS;
 
 
@@ -186,7 +173,7 @@ int main(const int argc, const char **argv) {
     }
 
 
-    if (share){
+    if (programOptions.share){
         std::string share_it;
         if (sp.share(serverInfo, share_it)){
             std::cout << "Results image: " << share_it << std::endl;

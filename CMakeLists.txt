@@ -28,7 +28,7 @@ set(SOURCE_FILES
         SpeedTestClient.cpp
         SpeedTestClient.h
         TestConfigTemplate.h
-        MD5Util.cpp MD5Util.h DataTypes.h)
+        MD5Util.cpp MD5Util.h DataTypes.h CmdOptions.h)
 
 configure_file (
         "${PROJECT_SOURCE_DIR}/SpeedTestConfig.h.in"
