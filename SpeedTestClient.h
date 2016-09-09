@@ -26,6 +26,7 @@ public:
     bool upload(const long size, const long chunk_size, long &millisec);
     bool download(const long size, const long chunk_size, long &millisec);
     bool ploss(const int size, const int wait_millisec, int &nploss);
+    float version();
     const std::pair<std::string, int> hostport();
     void close();
     static std::time_t now();
@@ -35,6 +36,7 @@ private:
     ServerInfo mServerInfo;
     int mSocketFd;
     bool mQualityHost;
+    float mServerVersion;
     static bool readLine(int& fd, std::string& buffer);
     static bool writeLine(int& fd, const std::string& buffer);
 };

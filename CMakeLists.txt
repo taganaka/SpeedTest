@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.7)
 project(SpeedTest)
 
 set (SpeedTest_VERSION_MAJOR 1)
@@ -15,6 +15,7 @@ set (SpeedTest_IP_INFO_API_URL "http://speedtest.ookla.com/api/ipaddress.php")
 set (SpeedTest_API_URL "http://www.speedtest.net/api/api.php")
 set (SpeedTest_API_REFERER "http://c.speedtest.net/flash/speedtest.swf")
 set (SpeedTest_API_KEY "297aae72")
+set (SpeedTest_MIN_SERVER_VERSION "2.3")
 
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")

@@ -82,12 +82,12 @@ const TestConfig fiberConfigDownload = {
 };
 
 const TestConfig fiberConfigUpload = {
-        2000000,   // start_size
-        70000000,  // max_size
-        350000,    // inc_size
-        65536,     // buff_size
-        20000,     // min_test_time_ms
-        16,        // concurrency
+        1000000,  // start_size
+        70000000, // max_size
+        250000,   // inc_size
+        65536,    // buff_size
+        20000,    // min_test_time_ms
+        12,       // concurrency
 };
 
 #endif //SPEEDTEST_TESTCONFIGTEMPLATE_H

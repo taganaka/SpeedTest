@@ -7,7 +7,8 @@
 
 SpeedTestClient::SpeedTestClient(const ServerInfo &serverInfo, bool qualityHost): mServerInfo(serverInfo),
                                                                                   mSocketFd(0),
-                                                                                  mQualityHost(qualityHost) {}
+                                                                                  mQualityHost(qualityHost),
+                                                                                  mServerVersion(-1.0){}
 
 SpeedTestClient::~SpeedTestClient() {
     close();
@@ -41,8 +42,15 @@ bool SpeedTestClient::connect() {
 
 
     if (SpeedTestClient::readLine(mSocketFd, reply)){
-        std::string cmp = "HELLO";
-        if (!reply.empty() && reply.compare(0, cmp.length(), cmp) == 0){
+        std::stringstream reply_stream(reply);
+        std::string hello;
+        reply_stream >> hello >> mServerVersion;
+        if (reply_stream.fail()) {
+            close();
+            return false;
+        }
+
+        if (!reply.empty() && "HELLO" == hello){
             return true;
         }
 
@@ -288,6 +296,10 @@ bool SpeedTestClient::ploss(const int size, const int wait_millisec, int &nploss
     return true;
 }
 
+float SpeedTestClient::version() {
+    return mServerVersion;
+}
+
 const std::pair<std::string, int> SpeedTestClient::hostport() {
     std::string targetHost = mQualityHost ? mServerInfo.linequality : mServerInfo.host;
     std::size_t found = targetHost.find(":");
@@ -331,5 +343,7 @@ bool SpeedTestClient::writeLine(int &fd, const std::string &buffer) {
     auto n = write(fd, buff_copy.c_str(), len);
     return n == len;
 }
+
+
 
 

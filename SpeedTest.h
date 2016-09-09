@@ -27,7 +27,7 @@ typedef void (*progressFn)(bool success);
 
 class SpeedTest {
 public:
-    SpeedTest();
+    SpeedTest(float minServerVersion);
     ~SpeedTest();
     CURLcode httpGet(const std::string& url, std::stringstream& os, CURL *handler = nullptr, long timeout = 30);
     CURLcode httpPost(const std::string& url, const std::string& postdata, std::stringstream& os, CURL *handler = nullptr, long timeout = 30);
@@ -64,6 +64,7 @@ private:
     int mQualityLatency;
     double mUploadSpeed;
     double mDownloadSpeed;
+    float mMinSupportedServer;
 
 };
 

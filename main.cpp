@@ -5,6 +5,7 @@
 #include "TestConfigTemplate.h"
 
 
+
 void banner(){
     std::cout << "SpeedTest++ version " << SpeedTest_VERSION_MAJOR << "." << SpeedTest_VERSION_MINOR << std::endl;
     std::cout << "Speedtest.net command line interface" << std::endl;
@@ -56,7 +57,7 @@ int main(const int argc, const char **argv) {
         share = true;
 
 
-    auto sp = SpeedTest();
+    auto sp = SpeedTest(SPEED_TEST_MIN_SERVER_VERSION);
     IPInfo info;
     if (!sp.ipInfo(info)){
         std::cerr << "Unable to retrieve your IP info. Try again later" << std::endl;
