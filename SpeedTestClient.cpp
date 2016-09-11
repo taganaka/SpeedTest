@@ -198,8 +198,6 @@ bool SpeedTestClient::mkSocket() {
         return false;
     }
 
-
-
     int portno = hostp.second;
     struct sockaddr_in serv_addr;
     memset(&serv_addr, 0, sizeof(serv_addr));
@@ -267,7 +265,8 @@ bool SpeedTestClient::ploss(const int size, const int wait_millisec, int &nploss
             std::cerr << "E";
         }
     }
-    usleep(static_cast<useconds_t >(wait_millisec * 1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(wait_millisec));
+//    usleep(static_cast<useconds_t >( * 1000));
     cmd.str("");
     cmd.clear();
 
