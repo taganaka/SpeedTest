@@ -1,0 +1,6 @@
+language: cpp
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y g++ cmake make libcurl4-openssl-dev libxml2-dev libssl-dev
+
+script: cd cmake_build && cmake -DCMAKE_BUILD_TYPE=Release ..
