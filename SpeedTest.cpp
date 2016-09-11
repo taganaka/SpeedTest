@@ -74,31 +74,45 @@ const std::vector<ServerInfo> &SpeedTest::serverQualityList() {
 
 }
 
-const ServerInfo SpeedTest::bestServer(const int sample_size, progressFn cb) {
+const ServerInfo SpeedTest::bestServer(const int sample_size, std::function<void(bool)> cb) {
     auto best = findBestServerWithin(serverList(), mLatency, sample_size, cb);
     SpeedTestClient client = SpeedTestClient(best);
-    testLatency(client, 80, mLatency);
+    testLatency(client, SPEED_TEST_LATENCY_SAMPLE_SIZE, mLatency);
     client.close();
     return best;
 }
 
-const ServerInfo SpeedTest::bestQualityServer(const int sample_size, progressFn cb) {
+bool SpeedTest::setServer(ServerInfo& server, const bool qualityServer){
+    SpeedTestClient client = SpeedTestClient(server, qualityServer);
+    if (client.connect() && client.version() >= mMinSupportedServer){
+        if (!testLatency(client, SPEED_TEST_LATENCY_SAMPLE_SIZE, mLatency)){
+            return false;
+        }
+    } else {
+        client.close();
+        return false;
+    }
+    client.close();
+    return true;
+
+}
+
+const ServerInfo SpeedTest::bestQualityServer(const int sample_size, std::function<void(bool)> cb) {
     auto best = findBestServerWithin(serverQualityList(), mQualityLatency, sample_size, cb);
     SpeedTestClient client = SpeedTestClient(best, true);
-    auto wait_for = mQualityLatency + 5;
-    testLatency(client, 80, wait_for);
+    testLatency(client, SPEED_TEST_LATENCY_SAMPLE_SIZE, mQualityLatency);
     client.close();
     return best;
 }
 
-bool SpeedTest::downloadSpeed(const ServerInfo &server, const TestConfig &config, double& result, progressFn cb) {
+bool SpeedTest::downloadSpeed(const ServerInfo &server, const TestConfig &config, double& result, std::function<void(bool)> cb) {
     opFn pfunc = &SpeedTestClient::download;
     mDownloadSpeed = execute(server, config, pfunc, cb);
     result = mDownloadSpeed;
     return true;
 }
 
-bool SpeedTest::uploadSpeed(const ServerInfo &server, const TestConfig &config, double& result, progressFn cb) {
+bool SpeedTest::uploadSpeed(const ServerInfo &server, const TestConfig &config, double& result, std::function<void(bool)> cb) {
     opFn pfunc = &SpeedTestClient::upload;
     mUploadSpeed = execute(server, config, pfunc, cb);
     result = mUploadSpeed;
@@ -133,10 +147,10 @@ bool SpeedTest::jitter(const ServerInfo &server, long& result, const int sample)
     return true;
 }
 
-bool SpeedTest::packetLoss(const ServerInfo &server, int &result, progressFn cb) {
+bool SpeedTest::packetLoss(const ServerInfo &server, int &result, progressFn _cb) {
     auto client = SpeedTestClient(server, true);
     if (client.connect()){
-        if (client.ploss(250, mQualityLatency, result)){
+        if (client.ploss(250, 100 + mQualityLatency, result)){
             client.close();
             return true;
         }
@@ -187,7 +201,7 @@ bool SpeedTest::share(const ServerInfo& server, std::string& image_url) {
 
 // private
 
-double SpeedTest::execute(const ServerInfo &server, const TestConfig &config, const opFn &pfunc, progressFn cb) {
+double SpeedTest::execute(const ServerInfo &server, const TestConfig &config, const opFn &pfunc, std::function<void(bool)> cb) {
     std::vector<std::thread> workers;
     double overall_speed = 0;
     std::mutex mtx;
@@ -510,7 +524,7 @@ bool SpeedTest::fetchServers(const std::string& url, std::vector<ServerInfo>& ta
 }
 
 const ServerInfo SpeedTest::findBestServerWithin(const std::vector<ServerInfo> &serverList, int &latency,
-                                                 const int sample_size, progressFn cb) {
+                                                 const int sample_size, std::function<void(bool)> cb) {
     int i = sample_size;
     ServerInfo bestServer = serverList[0];
 

@@ -36,22 +36,23 @@ public:
     bool ipInfo(IPInfo& info);
     const std::vector<ServerInfo>& serverList();
     const std::vector<ServerInfo>& serverQualityList();
-    const ServerInfo bestServer(const int sample_size = 5, progressFn cb = nullptr);
-    const ServerInfo bestQualityServer(const int sample_size = 5, progressFn cb = nullptr);
+    const ServerInfo bestServer(const int sample_size = 5, std::function<void(bool)> cb = nullptr);
+    bool setServer(ServerInfo& server, const bool qualityServer = false);
+    const ServerInfo bestQualityServer(const int sample_size = 5, std::function<void(bool)> cb = nullptr);
     const int &latency();
-    bool downloadSpeed(const ServerInfo& server, const TestConfig& config, double& result, progressFn cb = nullptr);
-    bool uploadSpeed(const ServerInfo& server, const TestConfig& config, double& result, progressFn cb = nullptr);
+    bool downloadSpeed(const ServerInfo& server, const TestConfig& config, double& result, std::function<void(bool)> cb = nullptr);
+    bool uploadSpeed(const ServerInfo& server, const TestConfig& config, double& result, std::function<void(bool)> cb = nullptr);
     bool packetLoss(const ServerInfo& server, int &result, progressFn cb = nullptr);
     bool jitter(const ServerInfo& server, long& result, const int sample = 40);
     bool share(const ServerInfo& server, std::string& image_url);
 private:
     bool fetchServers(const std::string& url,  std::vector<ServerInfo>& target, int &http_code);
     bool testLatency(SpeedTestClient& client, const int sample_size, int& latency);
-    const ServerInfo findBestServerWithin(const std::vector<ServerInfo>& serverList, int& latency, const int sample_size = 5, progressFn cb = nullptr);
+    const ServerInfo findBestServerWithin(const std::vector<ServerInfo>& serverList, int& latency, const int sample_size = 5, std::function<void(bool)> cb = nullptr);
     static CURL* curl_setup(CURL* curl = nullptr);
     static size_t writeFunc(void* buf, size_t size, size_t nmemb, void* userp);
     static ServerInfo processServerXMLNode(xmlTextReaderPtr reader);
-    double execute(const ServerInfo &server, const TestConfig &config, const opFn &fnc, progressFn cb = nullptr);
+    double execute(const ServerInfo &server, const TestConfig &config, const opFn &fnc, std::function<void(bool)> cb = nullptr);
     template <typename T>
         static T deg2rad(T n);
     template <typename T>
