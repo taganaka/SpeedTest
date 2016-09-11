@@ -47,20 +47,25 @@ $ make install
 ## Usage
 
 ```
-$ SpeedTest --help
-SpeedTest++ version 1.6
+$ ./SpeedTest --help
+SpeedTest++ version 1.8
 Speedtest.net command line interface
 Info: https://github.com/taganaka/SpeedTest
 Author: Francesco Laurita <francesco.laurita@gmail.com>
 
-usage: ./SpeedTest [--latency] [--download] [--upload] [--help] [--share]
+Usage: ./SpeedTest  [--latency] [--quality] [--download] [--upload] [--share] [--help]
+      [--test-server host:port] [--quality-server host:port] [--output verbose|text]
 optional arguments:
-	--help      Show this message and exit
-	--latency   Perform latency / Jitter / Packet loss test only
-	--download  Perform download test only. It includes latency test
-	--upload    Perform upload test only. It includes latency test
-	--share     Generate and provide a URL to the speedtest.net share results image
-$
+  --help                      Show this message and exit
+  --latency                   Perform latency test only
+  --quality                   Perform quality test only. It includes latency test
+  --download                  Perform download test only. It includes latency test
+  --upload                    Perform upload test only. It includes latency test
+  --share                     Generate and provide a URL to the speedtest.net share results image
+  --test-server host:port     Run speed test against a specific server
+  --quality-server host:port  Run line quality test against a specific server
+  --output verbose|text       Set output type. Default: verbose
+$ 
 ```
 
 ## License
