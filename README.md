@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/taganaka/SpeedTest.svg?branch=master)](https://travis-ci.org/taganaka/SpeedTest)
+
 # SpeedTest++
 
 Yet another unofficial speedtest.net client cli interface
