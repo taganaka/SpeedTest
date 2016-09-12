@@ -201,27 +201,13 @@ int main(const int argc, const char **argv) {
     if (programOptions.output_type == OutputType::verbose)
         std::cout << std::endl;
 
-    TestConfig uploadConfig   = slowConfigUpload;
-    TestConfig downloadConfig = slowConfigDownload;
-    if (preSpeed <= 4){
-        if (programOptions.output_type == OutputType::verbose)
-            std::cout << "Very-slow-line line type detected: profile selected slowband" << std::endl;
-    } else if (preSpeed > 4 && preSpeed <= 30){
-        if (programOptions.output_type == OutputType::verbose)
-            std::cout << "Buffering-lover line type detected: profile selected narrowband" << std::endl;
-        downloadConfig = narrowConfigDownload;
-        uploadConfig   = narrowConfigUpload;
-    } else if (preSpeed > 30 && preSpeed < 150) {
-        if (programOptions.output_type == OutputType::verbose)
-            std::cout << "Broadband line type detected: profile selected broadband" << std::endl;
-        downloadConfig = broadbandConfigDownload;
-        uploadConfig   = broadbandConfigUpload;
-    } else if (preSpeed >= 150) {
-        if (programOptions.output_type == OutputType::verbose)
-            std::cout << "Fiber / Lan line type detected: profile selected fiber" << std::endl;
-        downloadConfig = fiberConfigDownload;
-        uploadConfig   = fiberConfigUpload;
-    }
+    TestConfig uploadConfig;
+    TestConfig downloadConfig;
+    testConfigSelector(preSpeed, uploadConfig, downloadConfig);
+
+    if (programOptions.output_type == OutputType::verbose)
+        std::cout << downloadConfig.label << std::endl;
+
 
     if (!programOptions.upload){
         if (programOptions.output_type == OutputType::verbose){

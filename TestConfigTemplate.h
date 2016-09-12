@@ -14,6 +14,7 @@ const TestConfig preflightConfigDownload = {
            4096, // buff_size
           10000, // min_test_time_ms
               2, // Concurrency
+        "Preflight check"
 };
 
 const TestConfig slowConfigDownload = {
@@ -23,6 +24,7 @@ const TestConfig slowConfigDownload = {
            1024, // buff_size
           20000, // min_test_time_ms
               2, // Concurrency
+         "Very-slow-line line type detected: profile selected slowband"
 };
 
 const TestConfig slowConfigUpload = {
@@ -32,6 +34,7 @@ const TestConfig slowConfigUpload = {
            1024, // buff_size
           20000, // min_test_time_ms
               2, // Concurrency
+          "Very-slow-line line type detected: profile selected slowband"
 };
 
 
@@ -42,6 +45,7 @@ const TestConfig narrowConfigDownload = {
             4096, // buff_size
             20000, // min_test_time_ms
                 2, // Concurrency
+          "Buffering-lover line type detected: profile selected narrowband"
 };
 
 const TestConfig narrowConfigUpload = {
@@ -51,6 +55,7 @@ const TestConfig narrowConfigUpload = {
         4096, // buff_size
         20000, // min_test_time_ms
         2, // Concurrency
+        "Buffering-lover line type detected: profile selected narrowband"
 };
 
 const TestConfig broadbandConfigDownload = {
@@ -60,6 +65,7 @@ const TestConfig broadbandConfigDownload = {
         65536,     // buff_size
         20000,     // min_test_time_ms
         32,        // concurrency
+        "Broadband line type detected: profile selected broadband"
 
 };
 
@@ -70,6 +76,7 @@ const TestConfig broadbandConfigUpload = {
         65536,    // buff_size
         20000,    // min_test_time_ms
         8,        // concurrency
+        "Broadband line type detected: profile selected broadband"
 };
 
 const TestConfig fiberConfigDownload = {
@@ -79,6 +86,7 @@ const TestConfig fiberConfigDownload = {
         65536,     // buff_size
         20000,     // min_test_time_ms
         32,        // concurrency
+        "Fiber / Lan line type detected: profile selected fiber"
 };
 
 const TestConfig fiberConfigUpload = {
@@ -88,6 +96,25 @@ const TestConfig fiberConfigUpload = {
         65536,    // buff_size
         20000,    // min_test_time_ms
         12,       // concurrency
+        "Fiber / Lan line type detected: profile selected fiber"
 };
+
+void testConfigSelector(const double preSpeed, TestConfig& uploadConfig, TestConfig& downloadConfig){
+    uploadConfig   = slowConfigUpload;
+    downloadConfig = slowConfigDownload;
+
+
+    if (preSpeed > 4 && preSpeed <= 30){
+        downloadConfig = narrowConfigDownload;
+        uploadConfig   = narrowConfigUpload;
+    } else if (preSpeed > 30 && preSpeed < 150) {
+        downloadConfig = broadbandConfigDownload;
+        uploadConfig   = broadbandConfigUpload;
+    } else if (preSpeed >= 150) {
+        downloadConfig = fiberConfigDownload;
+        uploadConfig   = fiberConfigUpload;
+    }
+
+}
 
 #endif //SPEEDTEST_TESTCONFIGTEMPLATE_H

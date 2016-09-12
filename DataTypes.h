@@ -38,6 +38,7 @@ typedef struct test_config_t {
     long buff_size;
     long min_test_time_ms;
     int  concurrency;
+    std::string label;
 } TestConfig;
 
 #endif //SPEEDTEST_DATATYPES_H
