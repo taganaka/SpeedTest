@@ -4,7 +4,7 @@
 #include "SpeedTest.h"
 #include "TestConfigTemplate.h"
 #include "CmdOptions.h"
-
+#include <csignal>
 
 void banner(){
     std::cout << "SpeedTest++ version " << SpeedTest_VERSION_MAJOR << "." << SpeedTest_VERSION_MINOR << std::endl;
@@ -48,6 +48,8 @@ int main(const int argc, const char **argv) {
         usage(argv[0]);
         return EXIT_SUCCESS;
     }
+
+    signal(SIGPIPE, SIG_IGN);
 
 
     auto sp = SpeedTest(SPEED_TEST_MIN_SERVER_VERSION);
