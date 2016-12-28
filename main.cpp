@@ -25,7 +25,7 @@ void usage(const char* name){
     std::cerr << "  --upload                    Perform upload test only. It includes latency test\n";
     std::cerr << "  --share                     Generate and provide a URL to the speedtest.net share results image\n";
     std::cerr << "  --test-server host:port     Run speed test against a specific server\n";
-    std::cerr << "  --quality-server host:port  Run line quality test against a specific server\n";
+    std::cerr << "  --ping-server host:port  Run line quality test against a specific server\n";
     std::cerr << "  --output verbose|text       Set output type. Default: verbose\n";
 }
 

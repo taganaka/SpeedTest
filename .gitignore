@@ -29,3 +29,4 @@
 *.app
 cmake_build/
 .idea/
+cmake-build-debug/
