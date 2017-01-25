@@ -40,7 +40,7 @@ $ make install
 ### On Ubuntu/Debian
 
 ```
-$ sudo apt-get install build-essentials libcurl4-openssl-dev libxml2-dev libssl-dev cmake
+$ sudo apt-get install build-essential libcurl4-openssl-dev libxml2-dev libssl-dev cmake
 $ cd cmake_build
 $ cmake -DCMAKE_BUILD_TYPE=Release ..
 $ make install
@@ -67,7 +67,7 @@ optional arguments:
   --test-server host:port     Run speed test against a specific server
   --quality-server host:port  Run line quality test against a specific server
   --output verbose|text       Set output type. Default: verbose
-$ 
+$
 ```
 
 ## License
