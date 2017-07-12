@@ -18,7 +18,7 @@
 #include "DataTypes.h"
 class SpeedTestClient {
 public:
-    SpeedTestClient(const ServerInfo& serverInfo, bool qualityHost = false);
+    SpeedTestClient(const ServerInfo& serverInfo);
     ~SpeedTestClient();
 
     bool connect();
@@ -35,7 +35,6 @@ private:
     bool mkSocket();
     ServerInfo mServerInfo;
     int mSocketFd;
-    bool mQualityHost;
     float mServerVersion;
     static bool readLine(int& fd, std::string& buffer);
     static bool writeLine(int& fd, const std::string& buffer);

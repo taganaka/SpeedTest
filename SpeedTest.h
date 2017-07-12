@@ -35,10 +35,8 @@ public:
     static std::vector<std::string> splitString(const std::string& instr, const char separator);
     bool ipInfo(IPInfo& info);
     const std::vector<ServerInfo>& serverList();
-    const std::vector<ServerInfo>& serverQualityList();
     const ServerInfo bestServer(const int sample_size = 5, std::function<void(bool)> cb = nullptr);
-    bool setServer(ServerInfo& server, const bool qualityServer = false);
-    const ServerInfo bestQualityServer(const int sample_size = 5, std::function<void(bool)> cb = nullptr);
+    bool setServer(ServerInfo& server);
     const int &latency();
     bool downloadSpeed(const ServerInfo& server, const TestConfig& config, double& result, std::function<void(bool)> cb = nullptr);
     bool uploadSpeed(const ServerInfo& server, const TestConfig& config, double& result, std::function<void(bool)> cb = nullptr);

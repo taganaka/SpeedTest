@@ -16,16 +16,14 @@ void banner(){
 void usage(const char* name){
     std::cerr << "Usage: " << name << " ";
     std::cerr << " [--latency] [--quality] [--download] [--upload] [--share] [--help]\n"
-            "      [--test-server host:port] [--quality-server host:port] [--output verbose|text]\n";
+            "      [--test-server host:port] [--output verbose|text]\n";
     std::cerr << "optional arguments:" << std::endl;
     std::cerr << "  --help                      Show this message and exit\n";
     std::cerr << "  --latency                   Perform latency test only\n";
-    std::cerr << "  --quality                   Perform quality test only. It includes latency test\n";
     std::cerr << "  --download                  Perform download test only. It includes latency test\n";
     std::cerr << "  --upload                    Perform upload test only. It includes latency test\n";
     std::cerr << "  --share                     Generate and provide a URL to the speedtest.net share results image\n";
     std::cerr << "  --test-server host:port     Run speed test against a specific server\n";
-    std::cerr << "  --ping-server host:port  Run line quality test against a specific server\n";
     std::cerr << "  --output verbose|text       Set output type. Default: verbose\n";
 }
 
@@ -95,6 +93,7 @@ int main(const int argc, const char **argv) {
         if (programOptions.output_type == OutputType::verbose){
             std::cout << std::endl;
             std::cout << "Server: " << serverInfo.name
+                      << " " << serverInfo.host
                       << " by " << serverInfo.sponsor
                       << " (" << serverInfo.distance << " km from you): "
                       << sp.latency() << " ms" << std::endl;
@@ -136,58 +135,6 @@ int main(const int argc, const char **argv) {
     if (programOptions.latency)
         return EXIT_SUCCESS;
 
-    if (programOptions.selected_ping_server.empty()) {
-
-        if (programOptions.output_type == OutputType::verbose)
-            std::cout << "Finding fastest server for packet loss measurement... " << std::flush;
-
-        auto serverQualityList = sp.serverQualityList();
-
-        if (serverQualityList.empty()) {
-            std::cerr << "Unable to download server list. Packet loss analysis is not available at this time"
-                      << std::endl;
-        } else {
-
-            if (programOptions.output_type == OutputType::verbose)
-                std::cout << serverQualityList.size() << " Ping hosts online" << std::endl;
-
-            serverQualityInfo = sp.bestQualityServer(5, [&programOptions](bool success) {
-                if (programOptions.output_type == OutputType::verbose)
-                    std::cout << (success ? '.' : '*') << std::flush;
-            });
-
-            if (programOptions.output_type == OutputType::verbose){
-                std::cout << std::endl;
-                std::cout << "Server: " << serverQualityInfo.name
-                          << " by " << serverQualityInfo.sponsor
-                          << " (" << serverQualityInfo.distance << " km from you): " << std::endl;
-            } else {
-                std::cout << "QUALITY_SERVER_HOST=" << serverQualityInfo.linequality << std::endl;
-                std::cout << "QUALITY_SERVER_DISTANCE=" << serverQualityInfo.distance << std::endl;
-            }
-
-        }
-    } else {
-        serverQualityInfo.linequality.append(programOptions.selected_ping_server);
-        sp.setServer(serverQualityInfo, true);
-
-        if (programOptions.output_type == OutputType::verbose)
-            std::cout << "Selected quality server: " << serverQualityInfo.linequality << std::endl;
-        else
-            std::cout << "QUALITY_SERVER_HOST=" << serverQualityInfo.linequality << std::endl;
-    }
-
-    int ploss = 0;
-    if (sp.packetLoss(serverQualityInfo, ploss)) {
-        if (programOptions.output_type == OutputType::verbose)
-            std::cout << "Packets loss: " << ploss << std::endl;
-        else
-            std::cout << "PACKET_LOSS=" << ploss << std::endl;
-    }
-
-
-    if (programOptions.quality)
-        return EXIT_SUCCESS;
 
     if (programOptions.output_type == OutputType::verbose)
         std::cout << "Determine line type (" << preflightConfigDownload.concurrency << ") "  << std::flush;
