@@ -30,3 +30,4 @@
 cmake_build/
 .idea/
 cmake-build-debug/
+cmake-build-linux/
