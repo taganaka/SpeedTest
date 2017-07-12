@@ -15,9 +15,7 @@ typedef struct program_options_t {
     bool download = false;
     bool upload   = false;
     bool share    = false;
-    bool quality  = false;
     std::string selected_server = "";
-    std::string selected_ping_server = "";
     OutputType output_type = OutputType::verbose;
 } ProgramOptions;
 
@@ -26,15 +24,13 @@ static struct option CmdLongOptions[] = {
         {"latency",     no_argument,       0, 'l' },
         {"download",    no_argument,       0, 'd' },
         {"upload",      no_argument,       0, 'u' },
-        {"quality",     no_argument,       0, 'q' },
         {"share",       no_argument,       0, 's' },
         {"test-server", required_argument, 0, 't' },
-        {"ping-server", required_argument, 0, 'p' },
         {"output",      required_argument, 0, 'o' },
         {0,             0,                 0,  0  }
 };
 
-const char *optStr = "hldusqt:p:o:";
+const char *optStr = "hldusqt:o:";
 
 bool ParseOptions(const int argc, const char **argv, ProgramOptions& options){
     int long_index =0;
@@ -56,14 +52,8 @@ bool ParseOptions(const int argc, const char **argv, ProgramOptions& options){
             case 's':
                 options.share    = true;
                 break;
-            case 'q':
-                options.quality = true;
-                break;
             case 't':
                 options.selected_server.append(optarg);
-                break;
-            case 'p':
-                options.selected_ping_server.append(optarg);
                 break;
             case 'o':
                 if (strcmp(optarg, "verbose") == 0)

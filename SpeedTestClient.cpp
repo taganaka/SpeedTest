@@ -5,11 +5,9 @@
 #include <arpa/inet.h>
 #include "SpeedTestClient.h"
 
-SpeedTestClient::SpeedTestClient(const ServerInfo &serverInfo, bool qualityHost): mServerInfo(serverInfo),
+SpeedTestClient::SpeedTestClient(const ServerInfo &serverInfo): mServerInfo(serverInfo),
                                                                                   mSocketFd(0),
-                                                                                  mQualityHost(qualityHost),
                                                                                   mServerVersion(-1.0){}
-
 SpeedTestClient::~SpeedTestClient() {
     close();
 }
@@ -266,7 +264,6 @@ bool SpeedTestClient::ploss(const int size, const int wait_millisec, int &nploss
         }
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(wait_millisec));
-//    usleep(static_cast<useconds_t >( * 1000));
     cmd.str("");
     cmd.clear();
 
@@ -300,7 +297,7 @@ float SpeedTestClient::version() {
 }
 
 const std::pair<std::string, int> SpeedTestClient::hostport() {
-    std::string targetHost = mQualityHost ? mServerInfo.linequality : mServerInfo.host;
+    std::string targetHost = mServerInfo.host;
     std::size_t found = targetHost.find(":");
     std::string host  = targetHost.substr(0, found);
     std::string port  = targetHost.substr(found + 1, targetHost.length() - found);

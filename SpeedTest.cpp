@@ -15,14 +15,12 @@ SpeedTest::SpeedTest(float minServerVersion):
     curl_global_init(CURL_GLOBAL_DEFAULT);
     mIpInfo = IPInfo();
     mServerList = std::vector<ServerInfo>();
-    mServerQualityList = std::vector<ServerInfo>();
     mMinSupportedServer = minServerVersion;
 }
 
 SpeedTest::~SpeedTest() {
     curl_global_cleanup();
     mServerList.clear();
-    mServerQualityList.clear();
 }
 
 bool SpeedTest::ipInfo(IPInfo& info) {
@@ -61,18 +59,6 @@ const std::vector<ServerInfo>& SpeedTest::serverList() {
     return mServerList;
 }
 
-const std::vector<ServerInfo> &SpeedTest::serverQualityList() {
-    if (!mServerQualityList.empty())
-        return mServerQualityList;
-
-    int http_code = 0;
-    if (fetchServers(SPEED_TEST_SERVER_QUALITY_LIST_URL, mServerQualityList, http_code) && http_code == 200){
-        return mServerQualityList;
-    }
-    mServerQualityList.empty();
-    return mServerQualityList;
-
-}
 
 const ServerInfo SpeedTest::bestServer(const int sample_size, std::function<void(bool)> cb) {
     auto best = findBestServerWithin(serverList(), mLatency, sample_size, cb);
@@ -82,8 +68,8 @@ const ServerInfo SpeedTest::bestServer(const int sample_size, std::function<void
     return best;
 }
 
-bool SpeedTest::setServer(ServerInfo& server, const bool qualityServer){
-    SpeedTestClient client = SpeedTestClient(server, qualityServer);
+bool SpeedTest::setServer(ServerInfo& server){
+    SpeedTestClient client = SpeedTestClient(server);
     if (client.connect() && client.version() >= mMinSupportedServer){
         if (!testLatency(client, SPEED_TEST_LATENCY_SAMPLE_SIZE, mLatency)){
             return false;
@@ -95,14 +81,6 @@ bool SpeedTest::setServer(ServerInfo& server, const bool qualityServer){
     client.close();
     return true;
 
-}
-
-const ServerInfo SpeedTest::bestQualityServer(const int sample_size, std::function<void(bool)> cb) {
-    auto best = findBestServerWithin(serverQualityList(), mQualityLatency, sample_size, cb);
-    SpeedTestClient client = SpeedTestClient(best, true);
-    testLatency(client, SPEED_TEST_LATENCY_SAMPLE_SIZE, mQualityLatency);
-    client.close();
-    return best;
 }
 
 bool SpeedTest::downloadSpeed(const ServerInfo &server, const TestConfig &config, double& result, std::function<void(bool)> cb) {
@@ -148,7 +126,7 @@ bool SpeedTest::jitter(const ServerInfo &server, long& result, const int sample)
 }
 
 bool SpeedTest::packetLoss(const ServerInfo &server, int &result, progressFn _cb) {
-    auto client = SpeedTestClient(server, true);
+    auto client = SpeedTestClient(server);
     if (client.connect()){
         if (client.ploss(250, 100 + mQualityLatency, result)){
             client.close();
@@ -404,7 +382,6 @@ ServerInfo SpeedTest::processServerXMLNode(xmlTextReaderPtr reader) {
         auto server_host        = xmlTextReaderGetAttribute(reader, BAD_CAST "host");
         auto server_id          = xmlTextReaderGetAttribute(reader, BAD_CAST "id");
         auto server_sponsor     = xmlTextReaderGetAttribute(reader, BAD_CAST "sponsor");
-        auto server_linequality = xmlTextReaderGetAttribute(reader, BAD_CAST "linequality");
 
         if (server_name)
             info.name.append((char*)server_name);
@@ -424,9 +401,6 @@ ServerInfo SpeedTest::processServerXMLNode(xmlTextReaderPtr reader) {
         if (server_sponsor)
             info.sponsor.append((char*)server_sponsor);
 
-        if (server_linequality)
-            info.linequality.append((char*)server_linequality);
-
         if (server_id)
             info.id  = std::atoi((char*)server_id);
 
@@ -445,7 +419,6 @@ ServerInfo SpeedTest::processServerXMLNode(xmlTextReaderPtr reader) {
         xmlFree(server_host);
         xmlFree(server_id);
         xmlFree(server_sponsor);
-        xmlFree(server_linequality);
         return info;
     }
 
@@ -531,7 +504,7 @@ const ServerInfo SpeedTest::findBestServerWithin(const std::vector<ServerInfo> &
     latency = INT_MAX;
 
     for (auto &server : serverList){
-        auto client = SpeedTestClient(server, !server.linequality.empty());
+        auto client = SpeedTestClient(server);
 
         if (!client.connect()){
             if (cb)

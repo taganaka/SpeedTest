@@ -23,7 +23,6 @@ typedef struct server_info_t {
     std::string country_code;
     std::string host;
     std::string sponsor;
-    std::string linequality;
     int   id;
     float lat;
     float lon;
