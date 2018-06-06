@@ -71,11 +71,12 @@ int main(const int argc, const char **argv) {
         std::cout << "PROVIDER=" << info.isp << std::endl;
     }
 
+    auto serverList = sp.serverList();
 
     if (programOptions.selected_server.empty()){
         if (programOptions.output_type == OutputType::verbose)
             std::cout << "Finding fastest server... " << std::flush;
-        auto serverList = sp.serverList();
+        
         if (serverList.empty()){
             std::cerr << "Unable to download server list. Try again later" << std::endl;
             return EXIT_FAILURE;
@@ -107,6 +108,11 @@ int main(const int argc, const char **argv) {
 
         serverInfo.host.append(programOptions.selected_server);
         sp.setServer(serverInfo);
+
+        for (auto &s : serverList) {
+            if (s.host == serverInfo.host)
+                serverInfo.id = s.id;
+        }
 
         if (programOptions.output_type == OutputType::verbose)
             std::cout << "Selected server: " << serverInfo.host << std::endl;
