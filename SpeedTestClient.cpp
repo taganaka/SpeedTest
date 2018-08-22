@@ -184,7 +184,6 @@ bool SpeedTestClient::mkSocket() {
     mSocketFd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (!mSocketFd){
-        std::cerr << "ERROR, socket()" << std::endl;
         return false;
     }
 
@@ -192,12 +191,11 @@ bool SpeedTestClient::mkSocket() {
 
     struct hostent *server = gethostbyname(hostp.first.c_str());
     if (server == nullptr) {
-        std::cerr << "ERROR, no such host " << hostp.first << std::endl;
         return false;
     }
 
     int portno = hostp.second;
-    struct sockaddr_in serv_addr;
+    struct sockaddr_in serv_addr{};
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, (size_t)server->h_length);
@@ -205,11 +203,7 @@ bool SpeedTestClient::mkSocket() {
     serv_addr.sin_port = htons(static_cast<uint16_t>(portno));
 
     /* Dial */
-    if (::connect(mSocketFd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
-        perror("::connect() error");
-        return false;
-    }
-    return true;
+    return ::connect(mSocketFd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) >= 0;
 }
 
 bool SpeedTestClient::ploss(const int size, const int wait_millisec, int &nploss) {
@@ -225,7 +219,7 @@ bool SpeedTestClient::ploss(const int size, const int wait_millisec, int &nploss
 
 
     auto server = gethostbyname(hostp.first.c_str());
-    if (server == NULL) {
+    if (server == nullptr) {
         std::cerr << "ERROR, no such host as " << hostp.first << std::endl;
         return false;
     }
@@ -279,7 +273,7 @@ bool SpeedTestClient::ploss(const int size, const int wait_millisec, int &nploss
         return false;
     }
     size_t pos;
-    if ((pos = reply.find(" ")) != std::string::npos){
+    if ((pos = reply.find(' ')) != std::string::npos){
         if (reply.substr(0, pos) == "PLOSS"){
             auto packet_loss = std::atoi(reply.substr(pos + 1).c_str());
             nploss = size - packet_loss;
@@ -298,7 +292,7 @@ float SpeedTestClient::version() {
 
 const std::pair<std::string, int> SpeedTestClient::hostport() {
     std::string targetHost = mServerInfo.host;
-    std::size_t found = targetHost.find(":");
+    std::size_t found = targetHost.find(':');
     std::string host  = targetHost.substr(0, found);
     std::string port  = targetHost.substr(found + 1, targetHost.length() - found);
     return std::pair<std::string, int>(host, std::atoi(port.c_str()));

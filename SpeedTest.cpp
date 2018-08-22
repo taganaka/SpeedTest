@@ -509,7 +509,7 @@ const ServerInfo SpeedTest::findBestServerWithin(const std::vector<ServerInfo> &
         if (!client.connect()){
             if (cb)
                 cb(false);
-            std::cout << "E" << std::flush;
+//            std::cout << "E" << std::flush;
             continue;
         }
 
