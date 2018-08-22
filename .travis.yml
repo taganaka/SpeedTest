@@ -15,4 +15,4 @@ addons:
     - libcurl4-openssl-dev
     - libxml2-dev
     - libssl-dev
-script: cd cmake_build && cmake -DCMAKE_BUILD_TYPE=Release .. && make
+script: mkdir cmake_build && cd cmake_build && cmake -DCMAKE_BUILD_TYPE=Release .. && make
