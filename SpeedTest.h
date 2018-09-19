@@ -8,6 +8,7 @@
 #include "SpeedTestConfig.h"
 #include "SpeedTestClient.h"
 #include <libxml/xmlreader.h>
+#include <functional>
 #include <math.h>
 #include <curl/curl.h>
 #include <fstream>
