@@ -9,7 +9,7 @@
 #include "SpeedTestClient.h"
 #include <libxml/xmlreader.h>
 #include <functional>
-#include <math.h>
+#include <cmath>
 #include <curl/curl.h>
 #include <fstream>
 #include <sstream>
@@ -41,7 +41,6 @@ public:
     const int &latency();
     bool downloadSpeed(const ServerInfo& server, const TestConfig& config, double& result, std::function<void(bool)> cb = nullptr);
     bool uploadSpeed(const ServerInfo& server, const TestConfig& config, double& result, std::function<void(bool)> cb = nullptr);
-    bool packetLoss(const ServerInfo& server, int &result, progressFn cb = nullptr);
     bool jitter(const ServerInfo& server, long& result, const int sample = 40);
     bool share(const ServerInfo& server, std::string& image_url);
 private:
@@ -59,9 +58,7 @@ private:
 
     IPInfo mIpInfo;
     std::vector<ServerInfo> mServerList;
-    std::vector<ServerInfo> mServerQualityList;
     int mLatency;
-    int mQualityLatency;
     double mUploadSpeed;
     double mDownloadSpeed;
     float mMinSupportedServer;

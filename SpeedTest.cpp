@@ -6,10 +6,10 @@
 #include <iomanip>
 #include "SpeedTest.h"
 #include "MD5Util.h"
+#include <netdb.h>
 
 SpeedTest::SpeedTest(float minServerVersion):
         mLatency(0),
-        mQualityLatency(0),
         mUploadSpeed(0),
         mDownloadSpeed(0) {
     curl_global_init(CURL_GLOBAL_DEFAULT);
@@ -123,18 +123,6 @@ bool SpeedTest::jitter(const ServerInfo &server, long& result, const int sample)
 
     result = (long) std::floor(current_jitter / sample);
     return true;
-}
-
-bool SpeedTest::packetLoss(const ServerInfo &server, int &result, progressFn _cb) {
-    auto client = SpeedTestClient(server);
-    if (client.connect()){
-        if (client.ploss(250, 100 + mQualityLatency, result)){
-            client.close();
-            return true;
-        }
-    }
-    client.close();
-    return false;
 }
 
 

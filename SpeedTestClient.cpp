@@ -3,6 +3,7 @@
 //
 
 #include <arpa/inet.h>
+#include <netdb.h>
 #include "SpeedTestClient.h"
 
 SpeedTestClient::SpeedTestClient(const ServerInfo &serverInfo): mServerInfo(serverInfo),
@@ -188,6 +189,12 @@ bool SpeedTestClient::mkSocket() {
     }
 
     auto hostp = hostport();
+#if __APPLE__
+    struct hostent *server = gethostbyname(hostp.first.c_str());
+    if (server == nullptr) {
+        return false;
+    }
+#else
     struct hostent server;
     char tmpbuf[BUFSIZ];
     struct hostent *result;
@@ -195,12 +202,18 @@ bool SpeedTestClient::mkSocket() {
     if (gethostbyname_r(hostp.first.c_str(), &server, (char *)&tmpbuf, BUFSIZ, &result, &errnop)) {
         return false;
     }
+#endif
 
     int portno = hostp.second;
     struct sockaddr_in serv_addr{};
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
+
+#if __APPLE__
+    memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, (size_t)server->h_length);
+#else
     memcpy(&serv_addr.sin_addr.s_addr, server.h_addr, (size_t)server.h_length);
+#endif
 
     serv_addr.sin_port = htons(static_cast<uint16_t>(portno));
 
