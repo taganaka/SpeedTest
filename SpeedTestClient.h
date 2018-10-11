@@ -18,14 +18,13 @@
 #include "DataTypes.h"
 class SpeedTestClient {
 public:
-    SpeedTestClient(const ServerInfo& serverInfo);
+    explicit SpeedTestClient(const ServerInfo& serverInfo);
     ~SpeedTestClient();
 
     bool connect();
     bool ping(long &millisec);
-    bool upload(const long size, const long chunk_size, long &millisec);
-    bool download(const long size, const long chunk_size, long &millisec);
-    bool ploss(const int size, const int wait_millisec, int &nploss);
+    bool upload(long size, long chunk_size, long &millisec);
+    bool download(long size, long chunk_size, long &millisec);
     float version();
     const std::pair<std::string, int> hostport();
     void close();

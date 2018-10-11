@@ -97,7 +97,7 @@ bool SpeedTest::uploadSpeed(const ServerInfo &server, const TestConfig &config, 
     return true;
 }
 
-const int &SpeedTest::latency() {
+const long &SpeedTest::latency() {
     return mLatency;
 }
 
@@ -339,12 +339,12 @@ std::vector<std::string> SpeedTest::splitString(const std::string &instr, const 
     std::size_t start = 0, end = 0;
     while ((end = instr.find(separator, start)) != std::string::npos) {
         std::string temp = instr.substr(start, end - start);
-        if (temp != "")
+        if (!temp.empty())
             tokens.push_back(temp);
         start = end + 1;
     }
     std::string temp = instr.substr(start);
-    if (temp != "")
+    if (!temp.empty())
         tokens.push_back(temp);
     return tokens;
 
@@ -432,7 +432,7 @@ bool SpeedTest::fetchServers(const std::string& url, std::vector<ServerInfo>& ta
     }
 
     size_t len = oss.str().length();
-    char *xmlbuff = (char*)calloc(len + 1, sizeof(char));
+    auto *xmlbuff = (char*)calloc(len + 1, sizeof(char));
     if (!xmlbuff){
         std::cerr << "Unable to calloc" << std::endl;
         curl_easy_cleanup(curl);
@@ -484,7 +484,7 @@ bool SpeedTest::fetchServers(const std::string& url, std::vector<ServerInfo>& ta
     return true;
 }
 
-const ServerInfo SpeedTest::findBestServerWithin(const std::vector<ServerInfo> &serverList, int &latency,
+const ServerInfo SpeedTest::findBestServerWithin(const std::vector<ServerInfo> &serverList, long &latency,
                                                  const int sample_size, std::function<void(bool)> cb) {
     int i = sample_size;
     ServerInfo bestServer = serverList[0];
@@ -497,7 +497,6 @@ const ServerInfo SpeedTest::findBestServerWithin(const std::vector<ServerInfo> &
         if (!client.connect()){
             if (cb)
                 cb(false);
-//            std::cout << "E" << std::flush;
             continue;
         }
 
@@ -506,7 +505,7 @@ const ServerInfo SpeedTest::findBestServerWithin(const std::vector<ServerInfo> &
             continue;
         }
 
-        int current_latency = INT_MAX;
+        long current_latency = LONG_MAX;
         if (testLatency(client, 20, current_latency)){
             if (current_latency < latency){
                 latency = current_latency;
@@ -525,7 +524,7 @@ const ServerInfo SpeedTest::findBestServerWithin(const std::vector<ServerInfo> &
     return bestServer;
 }
 
-bool SpeedTest::testLatency(SpeedTestClient &client, const int sample_size, int &latency) {
+bool SpeedTest::testLatency(SpeedTestClient &client, const int sample_size, long &latency) {
     if (!client.connect()){
         return false;
     }
