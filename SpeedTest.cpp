@@ -419,14 +419,17 @@ bool SpeedTest::fetchServers(const std::string& url, std::vector<ServerInfo>& ta
 
     CURL* curl = curl_easy_init();
     auto cres = httpGet(url, oss, curl, 20);
+
     if (cres != CURLE_OK)
         return false;
 
     int req_status;
-    curl_easy_getinfo(curl, CURLINFO_HTTP_CODE, &req_status);
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &req_status);
+    char *scheme = nullptr;
+    curl_easy_getinfo(curl, CURLINFO_SCHEME, &scheme);
     http_code = req_status;
 
-    if (http_code != 200){
+    if (http_code != 200 && scheme != nullptr && strcmp("http", scheme) == 0){
         curl_easy_cleanup(curl);
         return false;
     }
