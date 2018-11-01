@@ -28,7 +28,7 @@ public:
     float version();
     const std::pair<std::string, int> hostport();
     void close();
-    static std::time_t now();
+
 
 private:
     bool mkSocket();

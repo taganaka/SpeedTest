@@ -53,6 +53,6 @@ else()
 endif()
 
 include_directories(${CURL_INCLUDE_DIRS} ${LIBXML2_INCLUDE_DIR})
-target_link_libraries(SpeedTest ${CURL_LIBRARIES} ${LIBXML2_LIBRARIES} -lssl -lcrypto -lpthread)
+target_link_libraries(SpeedTest ${CURL_LIBRARIES} ${LIBXML2_LIBRARIES} -lpthread ${OPENSSL_LIBRARIES})
 
 install(TARGETS SpeedTest RUNTIME DESTINATION bin)
