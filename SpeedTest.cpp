@@ -183,7 +183,7 @@ double SpeedTest::execute(const ServerInfo &server, const TestConfig &config, co
             if (spClient.connect()) {
                 long total_size = 0;
                 long total_time = 0;
-                auto start = SpeedTestClient::now();
+                auto start = std::chrono::steady_clock::now();
                 std::vector<double> partial_results;
                 while (curr_size < max_size){
                     long op_time = 0;
@@ -199,7 +199,8 @@ double SpeedTest::execute(const ServerInfo &server, const TestConfig &config, co
                             cb(false);
                     }
                     curr_size += incr_size;
-                    if ((SpeedTestClient::now() - start) > config.min_test_time_ms)
+                    auto stop = std::chrono::steady_clock::now();
+                    if (std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() > config.min_test_time_ms)
                         break;
                 }
 
