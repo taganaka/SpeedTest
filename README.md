@@ -41,9 +41,10 @@ $ make install
 
 ```
 $ sudo apt-get install build-essential libcurl4-openssl-dev libxml2-dev libssl-dev cmake
-$ cd cmake_build
-$ cmake -DCMAKE_BUILD_TYPE=Release ..
-$ make install
+$ git clone https://github.com/taganaka/SpeedTest
+$ cd SpeedTest
+$ cmake -DCMAKE_BUILD_TYPE=Release .
+$ sudo make install
 ```
 
 ## Usage
