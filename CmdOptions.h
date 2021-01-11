@@ -15,6 +15,7 @@ typedef struct program_options_t {
     bool download = false;
     bool upload   = false;
     bool share    = false;
+    bool insecure = false;
     std::string selected_server = "";
     OutputType output_type = OutputType::verbose;
 } ProgramOptions;
@@ -25,12 +26,13 @@ static struct option CmdLongOptions[] = {
         {"download",    no_argument,       0, 'd' },
         {"upload",      no_argument,       0, 'u' },
         {"share",       no_argument,       0, 's' },
+        {"insecure",    no_argument,       0, 'i' },
         {"test-server", required_argument, 0, 't' },
         {"output",      required_argument, 0, 'o' },
         {0,             0,                 0,  0  }
 };
 
-const char *optStr = "hldusqt:o:";
+const char *optStr = "hldusiqt:o:";
 
 bool ParseOptions(const int argc, const char **argv, ProgramOptions& options){
     int long_index =0;
@@ -51,6 +53,9 @@ bool ParseOptions(const int argc, const char **argv, ProgramOptions& options){
                 break;
             case 's':
                 options.share    = true;
+                break;
+            case 'i':
+                options.insecure = true;
                 break;
             case 't':
                 options.selected_server.append(optarg);

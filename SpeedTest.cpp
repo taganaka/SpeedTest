@@ -264,6 +264,7 @@ CURLcode SpeedTest::httpGet(const std::string &url, std::stringstream &ss, CURL 
     if (curl){
         if (CURLE_OK == (code = curl_easy_setopt(curl, CURLOPT_FILE, &ss))
             && CURLE_OK == (code = curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout))
+            && CURLE_OK == (code = curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, this->insecure))
             && CURLE_OK == (code = curl_easy_setopt(curl, CURLOPT_URL, url.c_str()))) {
             code = curl_easy_perform(curl);
         }
@@ -282,6 +283,7 @@ CURLcode SpeedTest::httpPost(const std::string &url, const std::string &postdata
         if (CURLE_OK == (code = curl_easy_setopt(curl, CURLOPT_FILE, &os))
             && CURLE_OK == (code = curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout))
             && CURLE_OK == (code = curl_easy_setopt(curl, CURLOPT_URL, url.c_str()))
+            && CURLE_OK == (code = curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, this->insecure))
             && CURLE_OK == (code = curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postdata.c_str()))) {
             code = curl_easy_perform(curl);
         }
@@ -550,3 +552,6 @@ bool SpeedTest::testLatency(SpeedTestClient &client, const int sample_size, long
     return true;
 }
 
+void SpeedTest::setInsecure(bool insecure) {
+    this->insecure = insecure;
+}
