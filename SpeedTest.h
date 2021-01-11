@@ -63,7 +63,7 @@ private:
     double mUploadSpeed;
     double mDownloadSpeed;
     float mMinSupportedServer;
-    bool insecure;
+    bool strict_ssl_verify;
 };
 
 
