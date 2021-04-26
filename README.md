@@ -47,6 +47,16 @@ $ cmake -DCMAKE_BUILD_TYPE=Release .
 $ sudo make install
 ```
 
+### On OpenSuse
+
+```
+$ sudo zypper install cmake gcc-c++ libcurl-devel libxml2-devel libopenssl-devel git
+$ git clone https://github.com/taganaka/SpeedTest
+$ cd SpeedTest
+$ cmake -DCMAKE_BUILD_TYPE=Release .
+$ sudo make install
+```
+
 ## Usage
 
 ```
