@@ -236,7 +236,7 @@ double SpeedTest::execute(const ServerInfo &server, const TestConfig &config, co
 
     workers.clear();
 
-    return overall_speed / 1000 / 1000;
+    return overall_speed / 1024 / 1024;
 }
 
 template<typename T>
