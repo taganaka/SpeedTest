@@ -120,7 +120,6 @@ const TestConfig gigaSymConfigUpload = {
         8,       // concurrency
         "Gigabit symmetric line type detected: profile selected gigasym"
 };
-};
 
 void testConfigSelector(const double preSpeed, TestConfig& uploadConfig, TestConfig& downloadConfig){
     uploadConfig   = slowConfigUpload;
