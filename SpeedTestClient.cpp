@@ -91,7 +91,7 @@ bool SpeedTestClient::ping(double &millisec) {
 }
 
 // It executes DOWNLOAD command
-bool SpeedTestClient::download(const long size, const long chunk_size, long &millisec) {
+bool SpeedTestClient::download(const long size, const long chunk_size, double &millisec) {
     std::stringstream cmd;
     cmd << "DOWNLOAD " << size;
 
@@ -117,13 +117,14 @@ bool SpeedTestClient::download(const long size, const long chunk_size, long &mil
     }
 
     auto stop = std::chrono::steady_clock::now();
-    millisec = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
+    double microsec = std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
+    millisec = microsec / 1000;
     delete[] buff;
     return true;
 }
 
 // It executes UPLOAD command
-bool SpeedTestClient::upload(const long size, const long chunk_size, long &millisec) {
+bool SpeedTestClient::upload(const long size, const long chunk_size, double &millisec) {
     std::stringstream cmd;
     cmd << "UPLOAD " << size << "\n";
     auto cmd_len = cmd.str().length();
@@ -171,7 +172,8 @@ bool SpeedTestClient::upload(const long size, const long chunk_size, long &milli
 
     std::stringstream ss;
     ss << "OK " << size << " ";
-    millisec = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
+    double microsec = std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
+    millisec = microsec / 1000;
     delete[] buff;
     return reply.substr(0, ss.str().length()) == ss.str();
 

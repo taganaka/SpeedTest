@@ -22,7 +22,7 @@
 #include "DataTypes.h"
 
 class SpeedTestClient;
-typedef bool (SpeedTestClient::*opFn)(const long size, const long chunk_size, long &millisec);
+typedef bool (SpeedTestClient::*opFn)(const long size, const long chunk_size, double &millisec);
 typedef void (*progressFn)(bool success);
 
 

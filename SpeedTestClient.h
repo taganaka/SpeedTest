@@ -23,8 +23,8 @@ public:
 
     bool connect();
     bool ping(double &millisec);
-    bool upload(long size, long chunk_size, long &millisec);
-    bool download(long size, long chunk_size, long &millisec);
+    bool upload(long size, long chunk_size, double &millisec);
+    bool download(long size, long chunk_size, double &millisec);
     float version();
     const std::pair<std::string, int> hostport();
     void close();
@@ -39,5 +39,5 @@ private:
     static bool writeLine(int& fd, const std::string& buffer);
 };
 
-typedef bool (SpeedTestClient::*opFn)(const long size, const long chunk_size, long &millisec);
+typedef bool (SpeedTestClient::*opFn)(const long size, const long chunk_size, double &millisec);
 #endif //SPEEDTEST_SPEEDTESTCLIENT_H
