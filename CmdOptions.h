@@ -7,7 +7,7 @@
 #include <getopt.h>
 
 enum OutputType { verbose, text, json };
-enum LineType { automatic, slow, narrow, broad, fiber };
+enum LineType { automatic, slow, narrow, broad, fiber, gigasym };
 
 
 typedef struct program_options_t {
@@ -83,6 +83,8 @@ bool ParseOptions(const int argc, const char **argv, ProgramOptions& options){
                     options.line_type = LineType::broad;
                 else if (strcmp(optarg, "fiber") == 0)
                     options.line_type = LineType::fiber;
+                else if (strcmp(optarg, "gigasym") == 0)
+                    options.line_type = LineType::gigasym;
                 else {
                     std::cerr << "Unsupported line type " << optarg << std::endl;
                     std::cerr << "Supported line type: auto, slow, narrow, broad, fiber" <<std::endl;

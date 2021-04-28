@@ -226,6 +226,10 @@ int main(const int argc, const char **argv) {
         uploadConfig = fiberConfigUpload;
         downloadConfig = fiberConfigDownload;
     }
+    else if (programOptions.line_type == LineType::gigasym) {
+        uploadConfig = gigaSymConfigUpload;
+        downloadConfig = gigaSymConfigDownload;
+    }
 
     if (programOptions.output_type == OutputType::verbose)
         std::cout << downloadConfig.label << std::endl;
