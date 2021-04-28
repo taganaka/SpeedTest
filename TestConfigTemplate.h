@@ -99,6 +99,50 @@ const TestConfig fiberConfigUpload = {
         "Fiber / Lan line type detected: profile selected fiber"
 };
 
+// The following configuration was deduced based on Speedtest.net (web) network activity
+
+// const TestConfig fiberConfigDownload = {
+//         25000000,  // start_size
+//         250000000, // max_size
+//         75000000,  // inc_size
+//         65536,     // buff_size
+//         15000,     // min_test_time_ms
+//         4,         // concurrency
+//         "Fiber / Lan line type detected: profile selected fiber"
+// };
+
+// const TestConfig fiberConfigUpload = {
+//         25000000,  // start_size
+//         250000000, // max_size
+//         25000000,  // inc_size
+//         65536,     // buff_size
+//         15000,     // min_test_time_ms
+//         4,         // concurrency
+//         "Fiber / Lan line type detected: profile selected fiber"
+// };
+
+// The following configuration was deduced based on actual throughput monitored in my router
+
+// const TestConfig fiberConfigDownload = {
+//         25000000,  // start_size
+//         62500000,  // max_size
+//         15000000,  // inc_size
+//         65536,     // buff_size
+//         20000,     // min_test_time_ms
+//         8,         // concurrency
+//         "Fiber / Lan line type detected: profile selected fiber"
+// };
+
+// const TestConfig fiberConfigUpload = {
+//         25000000,  // start_size
+//         62500000,  // max_size
+//         15000000,  // inc_size
+//         65536,     // buff_size
+//         20000,     // min_test_time_ms
+//         8,         // concurrency
+//         "Fiber / Lan line type detected: profile selected fiber"
+// };
+
 void testConfigSelector(const double preSpeed, TestConfig& uploadConfig, TestConfig& downloadConfig){
     uploadConfig   = slowConfigUpload;
     downloadConfig = slowConfigDownload;

@@ -7,6 +7,7 @@
 #include <getopt.h>
 
 enum OutputType { verbose, text, json };
+enum LineType { automatic, slow, narrow, broad, fiber };
 
 
 typedef struct program_options_t {
@@ -17,6 +18,7 @@ typedef struct program_options_t {
     bool share    = false;
     std::string selected_server = "";
     OutputType output_type = OutputType::verbose;
+    LineType line_type = LineType::automatic;
 } ProgramOptions;
 
 static struct option CmdLongOptions[] = {
@@ -27,6 +29,7 @@ static struct option CmdLongOptions[] = {
         {"share",       no_argument,       0, 's' },
         {"test-server", required_argument, 0, 't' },
         {"output",      required_argument, 0, 'o' },
+        {"line-type",   required_argument, 0, 'i' },
         {0,             0,                 0,  0  }
 };
 
@@ -65,6 +68,24 @@ bool ParseOptions(const int argc, const char **argv, ProgramOptions& options){
                 else {
                     std::cerr << "Unsupported output type " << optarg << std::endl;
                     std::cerr << "Supported output type: default, text, json" <<std::endl;
+                    return false;
+                }
+
+                break;
+            case 'i':
+                if (strcmp(optarg, "auto") == 0)
+                    options.line_type = LineType::automatic;
+                else if (strcmp(optarg, "slow") == 0)
+                    options.line_type = LineType::slow;
+                else if (strcmp(optarg, "narrow") == 0)
+                    options.line_type = LineType::narrow;
+                else if (strcmp(optarg, "broad") == 0)
+                    options.line_type = LineType::broad;
+                else if (strcmp(optarg, "fiber") == 0)
+                    options.line_type = LineType::fiber;
+                else {
+                    std::cerr << "Unsupported line type " << optarg << std::endl;
+                    std::cerr << "Supported line type: auto, slow, narrow, broad, fiber" <<std::endl;
                     return false;
                 }
 
