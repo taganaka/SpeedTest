@@ -99,14 +99,14 @@ const TestConfig fiberConfigUpload = {
         "Fiber / Lan line type detected: profile selected fiber"
 };
 
-// The following configuration was deduced based on actual traffic monitoring in my Mikrotik router
+// The following configuration was deduced based on actual traffic monitoring on my Mikrotik router
 
 const TestConfig gigaSymConfigDownload = {
         5000000,   // start_size
         120000000, // max_size
         950000,    // inc_size
         65536,     // buff_size
-        20000,     // min_test_time_ms
+        15000,     // min_test_time_ms
         8,        // concurrency
         "Gigabit symmetric line type detected: profile selected gigasym"
 };
@@ -116,7 +116,7 @@ const TestConfig gigaSymConfigUpload = {
         70000000, // max_size
         950000,   // inc_size
         65536,    // buff_size
-        20000,    // min_test_time_ms
+        15000,    // min_test_time_ms
         8,       // concurrency
         "Gigabit symmetric line type detected: profile selected gigasym"
 };
