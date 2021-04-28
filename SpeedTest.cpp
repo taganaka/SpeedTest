@@ -97,19 +97,19 @@ bool SpeedTest::uploadSpeed(const ServerInfo &server, const TestConfig &config, 
     return true;
 }
 
-const long &SpeedTest::latency() {
+const double &SpeedTest::latency() {
     return mLatency;
 }
 
-bool SpeedTest::jitter(const ServerInfo &server, long& result, const int sample) {
+bool SpeedTest::jitter(const ServerInfo &server, double& result, const int sample) {
     auto client = SpeedTestClient(server);
     double current_jitter = 0;
-    long previous_ms =  LONG_MAX;
+    double previous_ms = DBL_MAX;
     if (client.connect()){
         for (int i = 0; i < sample; i++){
-            long ms = 0;
+            double ms = 0;
             if (client.ping(ms)){
-                if (previous_ms == LONG_MAX) {
+                if (previous_ms == DBL_MAX) {
                     previous_ms = ms;
                 } else {
                     current_jitter += std::abs(previous_ms - ms);
@@ -121,21 +121,21 @@ bool SpeedTest::jitter(const ServerInfo &server, long& result, const int sample)
         return false;
     }
 
-    result = (long) std::floor(current_jitter / sample);
+    result = current_jitter / sample;
     return true;
 }
 
 
 bool SpeedTest::share(const ServerInfo& server, std::string& image_url) {
     std::stringstream hash;
-    hash << std::setprecision(0) << std::fixed << mLatency
+    hash << std::setprecision(2) << std::fixed << (mLatency / 1000)
     << "-" << std::setprecision(2) << std::fixed << (mUploadSpeed * 1000)
     << "-" << std::setprecision(2) << std::fixed << (mDownloadSpeed * 1000)
     << "-" << SPEED_TEST_API_KEY;
     std::string hex_digest = MD5Util::hexDigest(hash.str());
     std::stringstream post_data;
     post_data << "download=" << std::setprecision(2) << std::fixed << (mDownloadSpeed * 1000) << "&";
-    post_data << "ping=" << std::setprecision(0) << std::fixed << mLatency << "&";
+    post_data << "ping=" << std::setprecision(2) << std::fixed << (mLatency / 1000) << "&";
     post_data << "upload=" << std::setprecision(2) << std::fixed << (mUploadSpeed * 1000) << "&";
     post_data << "pingselect=1&";
     post_data << "recommendedserverid=" << server.id << "&";
@@ -492,12 +492,12 @@ bool SpeedTest::fetchServers(const std::string& url, std::vector<ServerInfo>& ta
     return true;
 }
 
-const ServerInfo SpeedTest::findBestServerWithin(const std::vector<ServerInfo> &serverList, long &latency,
+const ServerInfo SpeedTest::findBestServerWithin(const std::vector<ServerInfo> &serverList, double &latency,
                                                  const int sample_size, std::function<void(bool)> cb) {
     int i = sample_size;
     ServerInfo bestServer = serverList[0];
 
-    latency = INT_MAX;
+    latency = DBL_MAX;
 
     for (auto &server : serverList){
         auto client = SpeedTestClient(server);
@@ -513,7 +513,7 @@ const ServerInfo SpeedTest::findBestServerWithin(const std::vector<ServerInfo> &
             continue;
         }
 
-        long current_latency = LONG_MAX;
+        double current_latency = DBL_MAX;
         if (testLatency(client, 20, current_latency)){
             if (current_latency < latency){
                 latency = current_latency;
@@ -532,12 +532,12 @@ const ServerInfo SpeedTest::findBestServerWithin(const std::vector<ServerInfo> &
     return bestServer;
 }
 
-bool SpeedTest::testLatency(SpeedTestClient &client, const int sample_size, long &latency) {
+bool SpeedTest::testLatency(SpeedTestClient &client, const int sample_size, double &latency) {
     if (!client.connect()){
         return false;
     }
-    latency = INT_MAX;
-    long temp_latency = 0;
+    latency = DBL_MAX;
+    double temp_latency = 0;
     for (int i = 0; i < sample_size; i++){
         if (client.ping(temp_latency)){
             if (temp_latency < latency){

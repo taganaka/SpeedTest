@@ -38,15 +38,15 @@ public:
     const std::vector<ServerInfo>& serverList();
     const ServerInfo bestServer(int sample_size = 5, std::function<void(bool)> cb = nullptr);
     bool setServer(ServerInfo& server);
-    const long &latency();
+    const double &latency();
     bool downloadSpeed(const ServerInfo& server, const TestConfig& config, double& result, std::function<void(bool)> cb = nullptr);
     bool uploadSpeed(const ServerInfo& server, const TestConfig& config, double& result, std::function<void(bool)> cb = nullptr);
-    bool jitter(const ServerInfo& server, long& result, int sample = 40);
+    bool jitter(const ServerInfo& server, double& result, int sample = 40);
     bool share(const ServerInfo& server, std::string& image_url);
 private:
     bool fetchServers(const std::string& url,  std::vector<ServerInfo>& target, int &http_code);
-    bool testLatency(SpeedTestClient& client, int sample_size, long& latency);
-    const ServerInfo findBestServerWithin(const std::vector<ServerInfo>& serverList, long& latency, int sample_size = 5, std::function<void(bool)> cb = nullptr);
+    bool testLatency(SpeedTestClient& client, int sample_size, double& latency);
+    const ServerInfo findBestServerWithin(const std::vector<ServerInfo>& serverList, double& latency, int sample_size = 5, std::function<void(bool)> cb = nullptr);
     static CURL* curl_setup(CURL* curl = nullptr);
     static size_t writeFunc(void* buf, size_t size, size_t nmemb, void* userp);
     static ServerInfo processServerXMLNode(xmlTextReaderPtr reader);
@@ -58,7 +58,7 @@ private:
 
     IPInfo mIpInfo;
     std::vector<ServerInfo> mServerList;
-    long mLatency;
+    double mLatency;
     double mUploadSpeed;
     double mDownloadSpeed;
     float mMinSupportedServer;

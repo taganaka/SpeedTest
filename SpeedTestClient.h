@@ -22,7 +22,7 @@ public:
     ~SpeedTestClient();
 
     bool connect();
-    bool ping(long &millisec);
+    bool ping(double &millisec);
     bool upload(long size, long chunk_size, long &millisec);
     bool download(long size, long chunk_size, long &millisec);
     float version();

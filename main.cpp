@@ -163,7 +163,7 @@ int main(const int argc, const char **argv) {
         std::cout << sp.latency() << "\",";
     }
 
-    long jitter = 0;
+    double jitter = 0;
     if (programOptions.output_type == OutputType::verbose)
         std::cout << "Jitter: " << std::flush;
     if (sp.jitter(serverInfo, jitter)){
