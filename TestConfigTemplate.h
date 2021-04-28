@@ -107,7 +107,7 @@ const TestConfig gigaSymConfigDownload = {
         950000,    // inc_size
         65536,     // buff_size
         15000,     // min_test_time_ms
-        24,        // concurrency
+        6,         // concurrency
         "Gigabit symmetric line type detected: profile selected gigasym"
 };
 
@@ -117,7 +117,7 @@ const TestConfig gigaSymConfigUpload = {
         950000,   // inc_size
         65536,    // buff_size
         15000,    // min_test_time_ms
-        8,        // concurrency
+        24,        // concurrency
         "Gigabit symmetric line type detected: profile selected gigasym"
 };
 
