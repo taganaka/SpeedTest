@@ -260,7 +260,8 @@ int main(const int argc, const char **argv) {
             } else if (programOptions.output_type == OutputType::json) {
                 std::cout << "\"download\":\"";
                 std::cout << std::fixed;
-                std::cout << (downloadSpeed*1000*1000) << "\",";
+                std::cout << std::setprecision(2);
+                std::cout << (downloadSpeed) << "\",";
             }
         } else {
             std::cerr << "Download test failed." << std::endl;
@@ -298,7 +299,8 @@ int main(const int argc, const char **argv) {
         } else if (programOptions.output_type == OutputType::json) {
             std::cout << "\"upload\":\"";
             std::cout << std::fixed;
-            std::cout << (uploadSpeed*1000*1000) << "\",";
+            std::cout << std::setprecision(2);
+            std::cout << (uploadSpeed) << "\",";
         }
 
     } else {
