@@ -114,10 +114,10 @@ const TestConfig gigaSymConfigDownload = {
 const TestConfig gigaSymConfigUpload = {
         5000000,  // start_size
         70000000, // max_size
-        950000,   // inc_size
+        0,        // inc_size
         65536,    // buff_size
         15000,    // min_test_time_ms
-        24,        // concurrency
+        4,        // concurrency
         "Gigabit symmetric line type detected: profile selected gigasym"
 };
 
