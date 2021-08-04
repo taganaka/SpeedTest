@@ -16,7 +16,8 @@ void banner(){
 void usage(const char* name){
     std::cerr << "Usage: " << name << " ";
     std::cerr << " [--latency] [--quality] [--download] [--upload] [--share] [--help]\n"
-            "      [--test-server host:port] [--output verbose|text|json]\n";
+            "      [--test-server host:port] [--output verbose|text|json]\n"
+            "      [--line-type auto|slow|narrow|broad|fiber]\n";
     std::cerr << "optional arguments:" << std::endl;
     std::cerr << "  --help                      Show this message and exit\n";
     std::cerr << "  --latency                   Perform latency test only\n";
@@ -27,6 +28,7 @@ void usage(const char* name){
     std::cerr << "  --test-server host:port     Run speed test against a specific server\n";
     std::cerr << "  --quality-server host:port  Run line quality test against a specific server\n";
     std::cerr << "  --output verbose|text|json  Set output type. Default: verbose\n";
+    std::cerr << "  --output auto|slow|narrow|broad|fiber  Set line type. Default: auto\n";
 }
 
 int main(const int argc, const char **argv) {
@@ -163,7 +165,7 @@ int main(const int argc, const char **argv) {
         std::cout << sp.latency() << "\",";
     }
 
-    long jitter = 0;
+    double jitter = 0;
     if (programOptions.output_type == OutputType::verbose)
         std::cout << "Jitter: " << std::flush;
     if (sp.jitter(serverInfo, jitter)){
@@ -186,26 +188,48 @@ int main(const int argc, const char **argv) {
         return EXIT_SUCCESS;
     }
 
-
-    if (programOptions.output_type == OutputType::verbose)
-        std::cout << "Determine line type (" << preflightConfigDownload.concurrency << ") "  << std::flush;
-    double preSpeed = 0;
-    if (!sp.downloadSpeed(serverInfo, preflightConfigDownload, preSpeed, [&programOptions](bool success){
-        if (programOptions.output_type == OutputType::verbose)
-            std::cout << (success ? '.' : '*') << std::flush;
-    })){
-        std::cerr << "Pre-flight check failed." << std::endl;
-        if (programOptions.output_type == OutputType::json)
-            std::cout << "\"error\":\"pre-flight check failed\"}" << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    if (programOptions.output_type == OutputType::verbose)
-        std::cout << std::endl;
-
     TestConfig uploadConfig;
     TestConfig downloadConfig;
-    testConfigSelector(preSpeed, uploadConfig, downloadConfig);
+
+    if (programOptions.line_type == LineType::automatic) {
+        if (programOptions.output_type == OutputType::verbose)
+            std::cout << "Determine line type (" << preflightConfigDownload.concurrency << ") "  << std::flush;
+        double preSpeed = 0;
+        if (!sp.downloadSpeed(serverInfo, preflightConfigDownload, preSpeed, [&programOptions](bool success){
+            if (programOptions.output_type == OutputType::verbose)
+                std::cout << (success ? '.' : '*') << std::flush;
+        })){
+            std::cerr << "Pre-flight check failed." << std::endl;
+            if (programOptions.output_type == OutputType::json)
+                std::cout << "\"error\":\"pre-flight check failed\"}" << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        if (programOptions.output_type == OutputType::verbose)
+            std::cout << std::endl;
+        
+        testConfigSelector(preSpeed, uploadConfig, downloadConfig);
+    }
+    else if (programOptions.line_type == LineType::slow) {
+        uploadConfig = slowConfigUpload;
+        downloadConfig = slowConfigDownload;
+    }
+    else if (programOptions.line_type == LineType::narrow) {
+        uploadConfig = narrowConfigUpload;
+        downloadConfig = narrowConfigDownload;
+    }
+    else if (programOptions.line_type == LineType::broad) {
+        uploadConfig = broadbandConfigUpload;
+        downloadConfig = broadbandConfigDownload;
+    }
+    else if (programOptions.line_type == LineType::fiber) {
+        uploadConfig = fiberConfigUpload;
+        downloadConfig = fiberConfigDownload;
+    }
+    else if (programOptions.line_type == LineType::gigasym) {
+        uploadConfig = gigaSymConfigUpload;
+        downloadConfig = gigaSymConfigDownload;
+    }
 
     if (programOptions.output_type == OutputType::verbose)
         std::cout << downloadConfig.label << std::endl;
@@ -236,7 +260,7 @@ int main(const int argc, const char **argv) {
             } else if (programOptions.output_type == OutputType::json) {
                 std::cout << "\"download\":\"";
                 std::cout << std::fixed;
-                std::cout << (downloadSpeed*1000*1000) << "\",";
+                std::cout << (downloadSpeed) << "\",";
             }
         } else {
             std::cerr << "Download test failed." << std::endl;
@@ -274,7 +298,7 @@ int main(const int argc, const char **argv) {
         } else if (programOptions.output_type == OutputType::json) {
             std::cout << "\"upload\":\"";
             std::cout << std::fixed;
-            std::cout << (uploadSpeed*1000*1000) << "\",";
+            std::cout << (uploadSpeed) << "\",";
         }
 
     } else {
