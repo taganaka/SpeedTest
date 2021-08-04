@@ -6,6 +6,7 @@
 #include <iomanip>
 #include "SpeedTest.h"
 #include "MD5Util.h"
+#include <cfloat>
 #include <netdb.h>
 
 SpeedTest::SpeedTest(float minServerVersion):
