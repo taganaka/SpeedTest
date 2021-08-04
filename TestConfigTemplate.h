@@ -99,6 +99,28 @@ const TestConfig fiberConfigUpload = {
         "Fiber / Lan line type detected: profile selected fiber"
 };
 
+// The following configuration was deduced based on actual traffic monitoring on my Mikrotik router
+
+const TestConfig gigaSymConfigDownload = {
+        5000000,   // start_size
+        120000000, // max_size
+        950000,    // inc_size
+        65536,     // buff_size
+        15000,     // min_test_time_ms
+        6,         // concurrency
+        "Gigabit symmetric line type detected: profile selected gigasym"
+};
+
+const TestConfig gigaSymConfigUpload = {
+        5000000,  // start_size
+        70000000, // max_size
+        0,        // inc_size
+        65536,    // buff_size
+        15000,    // min_test_time_ms
+        4,        // concurrency
+        "Gigabit symmetric line type detected: profile selected gigasym"
+};
+
 void testConfigSelector(const double preSpeed, TestConfig& uploadConfig, TestConfig& downloadConfig){
     uploadConfig   = slowConfigUpload;
     downloadConfig = slowConfigDownload;
@@ -110,9 +132,12 @@ void testConfigSelector(const double preSpeed, TestConfig& uploadConfig, TestCon
     } else if (preSpeed > 30 && preSpeed < 150) {
         downloadConfig = broadbandConfigDownload;
         uploadConfig   = broadbandConfigUpload;
-    } else if (preSpeed >= 150) {
+    } else if (preSpeed > 150 && preSpeed < 450) {
         downloadConfig = fiberConfigDownload;
         uploadConfig   = fiberConfigUpload;
+    } else if (preSpeed >= 450) {
+        downloadConfig = gigaSymConfigDownload;
+        uploadConfig   = gigaSymConfigUpload;
     }
 
 }

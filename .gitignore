@@ -34,3 +34,34 @@ cmake-build-linux/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
+cmake_install.cmake
+CMakeCache.txt
+install_manifest.txt
+Makefile
+SpeedTest
+SpeedTestConfig.h
+CMakeFiles/cmake.check_cache
+CMakeFiles/CMakeDirectoryInformation.cmake
+CMakeFiles/CMakeOutput.log
+CMakeFiles/Makefile.cmake
+CMakeFiles/Makefile2
+CMakeFiles/progress.marks
+CMakeFiles/TargetDirectories.txt
+CMakeFiles/3.16.3/CMakeCCompiler.cmake
+CMakeFiles/3.16.3/CMakeCXXCompiler.cmake
+CMakeFiles/3.16.3/CMakeDetermineCompilerABI_C.bin
+CMakeFiles/3.16.3/CMakeDetermineCompilerABI_CXX.bin
+CMakeFiles/3.16.3/CMakeSystem.cmake
+CMakeFiles/3.16.3/CompilerIdC/CMakeCCompilerId.c
+CMakeFiles/3.16.3/CompilerIdCXX/CMakeCXXCompilerId.cpp
+CMakeFiles/SpeedTest.dir/build.make
+CMakeFiles/SpeedTest.dir/cmake_clean.cmake
+CMakeFiles/SpeedTest.dir/CXX.includecache
+CMakeFiles/SpeedTest.dir/depend.internal
+CMakeFiles/SpeedTest.dir/depend.make
+CMakeFiles/SpeedTest.dir/DependInfo.cmake
+CMakeFiles/SpeedTest.dir/flags.make
+CMakeFiles/SpeedTest.dir/link.txt
+CMakeFiles/SpeedTest.dir/progress.make
+CMakeFiles/Progress/1
+CMakeFiles/Progress/count.txt
