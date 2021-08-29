@@ -38,6 +38,7 @@ public:
     const std::vector<ServerInfo>& serverList();
     const ServerInfo bestServer(int sample_size = 5, std::function<void(bool)> cb = nullptr);
     bool setServer(ServerInfo& server);
+    void setInsecure(bool insecure = false);
     const long &latency();
     bool downloadSpeed(const ServerInfo& server, const TestConfig& config, double& result, std::function<void(bool)> cb = nullptr);
     bool uploadSpeed(const ServerInfo& server, const TestConfig& config, double& result, std::function<void(bool)> cb = nullptr);
@@ -62,7 +63,7 @@ private:
     double mUploadSpeed;
     double mDownloadSpeed;
     float mMinSupportedServer;
-
+    bool strict_ssl_verify;
 };
 
 
