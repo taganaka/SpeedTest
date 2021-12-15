@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 FROM ubuntu:latest
 
 RUN mkdir -p /tmp/build /tmp/src

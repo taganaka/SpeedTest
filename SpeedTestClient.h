@@ -1,10 +1,10 @@
 //
 // Created by Francesco Laurita on 5/30/16.
+// SPDX-License-Identifier: MIT
 //
 
 #ifndef SPEEDTEST_SPEEDTESTCLIENT_H
 #define SPEEDTEST_SPEEDTESTCLIENT_H
-
 
 #include <ctime>
 #include <netdb.h>
@@ -16,9 +16,10 @@
 #include <unistd.h>
 #include "SpeedTest.h"
 #include "DataTypes.h"
-class SpeedTestClient {
+class SpeedTestClient
+{
 public:
-    explicit SpeedTestClient(const ServerInfo& serverInfo);
+    explicit SpeedTestClient(const ServerInfo &serverInfo);
     ~SpeedTestClient();
 
     bool connect();
@@ -29,15 +30,14 @@ public:
     const std::pair<std::string, int> hostport();
     void close();
 
-
 private:
     bool mkSocket();
     ServerInfo mServerInfo;
     int mSocketFd;
     float mServerVersion;
-    static bool readLine(int& fd, std::string& buffer);
-    static bool writeLine(int& fd, const std::string& buffer);
+    static bool readLine(int &fd, std::string &buffer);
+    static bool writeLine(int &fd, const std::string &buffer);
 };
 
 typedef bool (SpeedTestClient::*opFn)(const long size, const long chunk_size, double &millisec);
-#endif //SPEEDTEST_SPEEDTESTCLIENT_H
+#endif // SPEEDTEST_SPEEDTESTCLIENT_H

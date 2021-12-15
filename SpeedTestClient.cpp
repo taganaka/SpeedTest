@@ -1,25 +1,28 @@
 //
 // Created by Francesco Laurita on 5/30/16.
+// SPDX-License-Identifier: MIT
 //
 
 #include <arpa/inet.h>
 #include <netdb.h>
 #include "SpeedTestClient.h"
 
-SpeedTestClient::SpeedTestClient(const ServerInfo &serverInfo): mServerInfo(serverInfo),
-                                                                                  mSocketFd(0),
-                                                                                  mServerVersion(-1.0){}
-SpeedTestClient::~SpeedTestClient() {
+SpeedTestClient::SpeedTestClient(const ServerInfo &serverInfo) : mServerInfo(serverInfo),
+                                                                 mSocketFd(0),
+                                                                 mServerVersion(-1.0) {}
+SpeedTestClient::~SpeedTestClient()
+{
     close();
 }
 
 // It returns current timestamp in ms
 
-
 // It connects and initiates client/server handshaking
-bool SpeedTestClient::connect() {
+bool SpeedTestClient::connect()
+{
 
-    if (mSocketFd){
+    if (mSocketFd)
+    {
         return true;
     }
 
@@ -29,41 +32,45 @@ bool SpeedTestClient::connect() {
 
     std::string reply;
 
-    if (!SpeedTestClient::writeLine(mSocketFd, "HI")){
+    if (!SpeedTestClient::writeLine(mSocketFd, "HI"))
+    {
         close();
         return false;
     }
 
-
-    if (SpeedTestClient::readLine(mSocketFd, reply)){
+    if (SpeedTestClient::readLine(mSocketFd, reply))
+    {
         std::stringstream reply_stream(reply);
         std::string hello;
         reply_stream >> hello >> mServerVersion;
-        if (reply_stream.fail()) {
+        if (reply_stream.fail())
+        {
             close();
             return false;
         }
 
-        if (!reply.empty() && "HELLO" == hello){
+        if (!reply.empty() && "HELLO" == hello)
+        {
             return true;
         }
-
     }
     close();
     return false;
 }
 
 // It closes a connection
-void SpeedTestClient::close() {
-    if (mSocketFd){
+void SpeedTestClient::close()
+{
+    if (mSocketFd)
+    {
         SpeedTestClient::writeLine(mSocketFd, "QUIT");
         ::close(mSocketFd);
     }
-
 }
 
 // It executes PING command
-bool SpeedTestClient::ping(double &millisec) {
+bool SpeedTestClient::ping(double &millisec)
+{
     if (!mSocketFd)
         return false;
 
@@ -73,12 +80,15 @@ bool SpeedTestClient::ping(double &millisec) {
     auto start = std::chrono::steady_clock::now();
     cmd << "PING " << start.time_since_epoch().count();
 
-    if (!SpeedTestClient::writeLine(mSocketFd, cmd.str())){
+    if (!SpeedTestClient::writeLine(mSocketFd, cmd.str()))
+    {
         return false;
     }
 
-    if (SpeedTestClient::readLine(mSocketFd, reply)){
-        if (reply.substr(0, 5) == "PONG "){
+    if (SpeedTestClient::readLine(mSocketFd, reply))
+    {
+        if (reply.substr(0, 5) == "PONG ")
+        {
             auto stop = std::chrono::steady_clock::now();
             double microsec = std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
             millisec = microsec / 1000;
@@ -91,14 +101,15 @@ bool SpeedTestClient::ping(double &millisec) {
 }
 
 // It executes DOWNLOAD command
-bool SpeedTestClient::download(const long size, const long chunk_size, double &millisec) {
+bool SpeedTestClient::download(const long size, const long chunk_size, double &millisec)
+{
     std::stringstream cmd;
     cmd << "DOWNLOAD " << size;
 
-    if (!SpeedTestClient::writeLine(mSocketFd, cmd.str())){
+    if (!SpeedTestClient::writeLine(mSocketFd, cmd.str()))
+    {
         return false;
     }
-
 
     char *buff = new char[chunk_size];
     for (size_t i = 0; i < static_cast<size_t>(chunk_size); i++)
@@ -106,10 +117,12 @@ bool SpeedTestClient::download(const long size, const long chunk_size, double &m
 
     long missing = 0;
     auto start = std::chrono::steady_clock::now();
-    while (missing != size){
+    while (missing != size)
+    {
         auto current = read(mSocketFd, buff, static_cast<size_t>(chunk_size));
 
-        if (current <= 0){
+        if (current <= 0)
+        {
             delete[] buff;
             return false;
         }
@@ -124,19 +137,21 @@ bool SpeedTestClient::download(const long size, const long chunk_size, double &m
 }
 
 // It executes UPLOAD command
-bool SpeedTestClient::upload(const long size, const long chunk_size, double &millisec) {
+bool SpeedTestClient::upload(const long size, const long chunk_size, double &millisec)
+{
     std::stringstream cmd;
     cmd << "UPLOAD " << size << "\n";
     auto cmd_len = cmd.str().length();
 
     char *buff = new char[chunk_size];
-    for(size_t i = 0; i < static_cast<size_t>(chunk_size); i++)
+    for (size_t i = 0; i < static_cast<size_t>(chunk_size); i++)
         buff[i] = static_cast<char>(rand() % 256);
 
     long missing = size;
     auto start = std::chrono::steady_clock::now();
 
-    if (!SpeedTestClient::writeLine(mSocketFd, cmd.str())){
+    if (!SpeedTestClient::writeLine(mSocketFd, cmd.str()))
+    {
         delete[] buff;
         return false;
     }
@@ -144,27 +159,33 @@ bool SpeedTestClient::upload(const long size, const long chunk_size, double &mil
     ssize_t w = cmd_len;
     missing -= w;
 
-    while(missing > 0){
-        if (missing - chunk_size > 0){
+    while (missing > 0)
+    {
+        if (missing - chunk_size > 0)
+        {
             w = write(mSocketFd, buff, static_cast<size_t>(chunk_size));
-            if (w != chunk_size){
-                delete[] buff;
-                return false;
-            }
-            missing -= w;
-        } else {
-            buff[missing - 1] = '\n';
-            w = write(mSocketFd, buff, static_cast<size_t>(missing));
-            if (w != missing){
+            if (w != chunk_size)
+            {
                 delete[] buff;
                 return false;
             }
             missing -= w;
         }
-
+        else
+        {
+            buff[missing - 1] = '\n';
+            w = write(mSocketFd, buff, static_cast<size_t>(missing));
+            if (w != missing)
+            {
+                delete[] buff;
+                return false;
+            }
+            missing -= w;
+        }
     }
     std::string reply;
-    if (!SpeedTestClient::readLine(mSocketFd, reply)){
+    if (!SpeedTestClient::readLine(mSocketFd, reply))
+    {
         delete[] buff;
         return false;
     }
@@ -176,20 +197,22 @@ bool SpeedTestClient::upload(const long size, const long chunk_size, double &mil
     millisec = microsec / 1000;
     delete[] buff;
     return reply.substr(0, ss.str().length()) == ss.str();
-
 }
 
-bool SpeedTestClient::mkSocket() {
+bool SpeedTestClient::mkSocket()
+{
     mSocketFd = socket(AF_INET, SOCK_STREAM, 0);
 
-    if (!mSocketFd){
+    if (!mSocketFd)
+    {
         return false;
     }
 
     auto hostp = hostport();
 #if __APPLE__
     struct hostent *server = gethostbyname(hostp.first.c_str());
-    if (server == nullptr) {
+    if (server == nullptr)
+    {
         return false;
     }
 #else
@@ -197,13 +220,16 @@ bool SpeedTestClient::mkSocket() {
     char tmpbuf[BUFSIZ];
     struct hostent *result;
     int errnop;
-    if (gethostbyname_r(hostp.first.c_str(), &server, (char *)&tmpbuf, BUFSIZ, &result, &errnop)) {
+    if (gethostbyname_r(hostp.first.c_str(), &server, (char *)&tmpbuf, BUFSIZ, &result, &errnop))
+    {
         return false;
     }
 #endif
 
     int portno = hostp.second;
-    struct sockaddr_in serv_addr{};
+    struct sockaddr_in serv_addr
+    {
+    };
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
 
@@ -216,28 +242,31 @@ bool SpeedTestClient::mkSocket() {
     serv_addr.sin_port = htons(static_cast<uint16_t>(portno));
 
     /* Dial */
-    return ::connect(mSocketFd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) >= 0;
+    return ::connect(mSocketFd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) >= 0;
 }
 
-
-float SpeedTestClient::version() {
+float SpeedTestClient::version()
+{
     return mServerVersion;
 }
 
-const std::pair<std::string, int> SpeedTestClient::hostport() {
+const std::pair<std::string, int> SpeedTestClient::hostport()
+{
     std::string targetHost = mServerInfo.host;
     std::size_t found = targetHost.find(':');
-    std::string host  = targetHost.substr(0, found);
-    std::string port  = targetHost.substr(found + 1, targetHost.length() - found);
+    std::string host = targetHost.substr(0, found);
+    std::string port = targetHost.substr(found + 1, targetHost.length() - found);
     return std::pair<std::string, int>(host, std::atoi(port.c_str()));
 }
 
-bool SpeedTestClient::readLine(int &fd, std::string &buffer) {
+bool SpeedTestClient::readLine(int &fd, std::string &buffer)
+{
     buffer.clear();
     if (!fd)
         return false;
     char c;
-    while(true){
+    while (true)
+    {
         auto n = read(fd, &c, 1);
         if (n == -1)
             return false;
@@ -245,29 +274,26 @@ bool SpeedTestClient::readLine(int &fd, std::string &buffer) {
             break;
 
         buffer += c;
-
     }
     return true;
 }
 
-bool SpeedTestClient::writeLine(int &fd, const std::string &buffer) {
+bool SpeedTestClient::writeLine(int &fd, const std::string &buffer)
+{
     if (!fd)
         return false;
 
-    auto len = static_cast<ssize_t >(buffer.length());
+    auto len = static_cast<ssize_t>(buffer.length());
     if (len == 0)
         return false;
 
     std::string buff_copy = buffer;
 
-    if (buff_copy.find_first_of('\n') == std::string::npos){
+    if (buff_copy.find_first_of('\n') == std::string::npos)
+    {
         buff_copy += '\n';
         len += 1;
     }
     auto n = write(fd, buff_copy.c_str(), len);
     return n == len;
 }
-
-
-
-

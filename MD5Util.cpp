@@ -1,11 +1,13 @@
 //
 // Created by Francesco Laurita on 6/3/16.
+// SPDX-License-Identifier: MIT
 //
 
 #include <sstream>
 #include "MD5Util.h"
 
-std::string MD5Util::hexDigest(const std::string &str) {
+std::string MD5Util::hexDigest(const std::string &str)
+{
     unsigned char digest[MD5_DIGEST_LENGTH];
 
     MD5_CTX ctx;
@@ -15,8 +17,7 @@ std::string MD5Util::hexDigest(const std::string &str) {
 
     char hexDigest[33] = {'\0'};
     for (int i = 0; i < 16; i++)
-        std::sprintf(&hexDigest[i*2], "%02x", (unsigned int)digest[i]);
+        std::sprintf(&hexDigest[i * 2], "%02x", (unsigned int)digest[i]);
 
     return std::string(hexDigest);
 }
-

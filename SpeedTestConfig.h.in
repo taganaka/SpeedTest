@@ -1,6 +1,8 @@
+// SPDX-License-Identifier: MIT
+
 // The configured options and settings for SpeedTest
-#define SpeedTest_VERSION_MAJOR @SpeedTest_VERSION_MAJOR@
-#define SpeedTest_VERSION_MINOR @SpeedTest_VERSION_MINOR@
+#define SpeedTest_VERSION_MAJOR @SpeedTest_VERSION_MAJOR @
+#define SpeedTest_VERSION_MINOR @SpeedTest_VERSION_MINOR @
 #define SpeedTest_SYSTEM_PROCESSOR "@SpeedTest_SYSTEM_PROCESSOR@"
 #define SpeedTest_SYSTEM "@SpeedTest_SYSTEM@"
 #define SpeedTest_AUTHOR "@SpeedTest_AUTHOR@"
@@ -13,5 +15,5 @@
 #define SPEED_TEST_API_URL "@SpeedTest_API_URL@"
 #define SPEED_TEST_API_REFERER "@SpeedTest_API_REFERER@"
 #define SPEED_TEST_API_KEY "@SpeedTest_API_KEY@"
-#define SPEED_TEST_MIN_SERVER_VERSION @SpeedTest_MIN_SERVER_VERSION@
-#define SPEED_TEST_LATENCY_SAMPLE_SIZE @SpeedTest_LATENCY_SAMPLE_SIZE@
+#define SPEED_TEST_MIN_SERVER_VERSION @SpeedTest_MIN_SERVER_VERSION @
+#define SPEED_TEST_LATENCY_SAMPLE_SIZE @SpeedTest_LATENCY_SAMPLE_SIZE @
