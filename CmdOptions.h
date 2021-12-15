@@ -30,21 +30,25 @@ typedef struct program_options_t
     bool download = false;
     bool upload = false;
     bool share = false;
+    bool insecure = false;
     std::string selected_server = "";
     OutputType output_type = OutputType::verbose;
     LineType line_type = LineType::automatic;
 } ProgramOptions;
 
-static struct option CmdLongOptions[] = {
+static struct option CmdLongOptions[] =
+{
     {"help", no_argument, 0, 'h'},
     {"latency", no_argument, 0, 'l'},
     {"download", no_argument, 0, 'd'},
     {"upload", no_argument, 0, 'u'},
     {"share", no_argument, 0, 's'},
+    {"insecure", no_argument, 0, 'i' },
     {"test-server", required_argument, 0, 't'},
     {"output", required_argument, 0, 'o'},
     {"line-type", required_argument, 0, 'i'},
-    {0, 0, 0, 0}};
+    {0, 0, 0, 0}
+};
 
 const char *optStr = "hldusqt:o:";
 
@@ -71,6 +75,9 @@ bool ParseOptions(const int argc, const char **argv, ProgramOptions &options)
         case 's':
             options.share = true;
             break;
+        case 'i':
+        	options.insecure = true;
+            break;
         case 't':
             options.selected_server.append(optarg);
             break;
@@ -88,30 +95,9 @@ bool ParseOptions(const int argc, const char **argv, ProgramOptions &options)
                 return false;
             }
 
-            break;
-        case 'i':
-            if (strcmp(optarg, "auto") == 0)
-                options.line_type = LineType::automatic;
-            else if (strcmp(optarg, "slow") == 0)
-                options.line_type = LineType::slow;
-            else if (strcmp(optarg, "narrow") == 0)
-                options.line_type = LineType::narrow;
-            else if (strcmp(optarg, "broad") == 0)
-                options.line_type = LineType::broad;
-            else if (strcmp(optarg, "fiber") == 0)
-                options.line_type = LineType::fiber;
-            else if (strcmp(optarg, "gigasym") == 0)
-                options.line_type = LineType::gigasym;
-            else
-            {
-                std::cerr << "Unsupported line type " << optarg << std::endl;
-                std::cerr << "Supported line type: auto, slow, narrow, broad, fiber" << std::endl;
+                break;
+            default:
                 return false;
-            }
-
-            break;
-        default:
-            return false;
         }
     }
     return true;

@@ -29,6 +29,7 @@ void usage(const char *name)
     std::cerr << "  --download                  Perform download test only. It includes latency test\n";
     std::cerr << "  --upload                    Perform upload test only. It includes latency test\n";
     std::cerr << "  --share                     Generate and provide a URL to the speedtest.net share results image\n";
+    std::cerr << "  --insecure                  Skip SSL certificate verify (Useful for Embedded devices)\n";
     std::cerr << "  --test-server host:port     Run speed test against a specific server\n";
     std::cerr << "  --quality-server host:port  Run line quality test against a specific server\n";
     std::cerr << "  --output verbose|text|json  Set output type. Default: verbose\n";
@@ -64,6 +65,10 @@ int main(const int argc, const char **argv)
     IPInfo info;
     ServerInfo serverInfo;
     ServerInfo serverQualityInfo;
+    
+    if (programOptions.insecure) {
+        sp.setInsecure(programOptions.insecure);
+    }
 
     if (programOptions.output_type == OutputType::json)
         std::cout << "{";
