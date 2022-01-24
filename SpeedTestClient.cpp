@@ -184,7 +184,7 @@ bool SpeedTestClient::mkSocket() {
     }
 
     auto hostp = hostport();
-#if __APPLE__
+#if __APPLE__ || defined(__OpenBSD__)
     struct hostent *server = gethostbyname(hostp.first.c_str());
     if (server == nullptr) {
         return false;
@@ -204,7 +204,7 @@ bool SpeedTestClient::mkSocket() {
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
 
-#if __APPLE__
+#if __APPLE__ || defined(__OpenBSD__)
     memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, (size_t)server->h_length);
 #else
     memcpy(&serv_addr.sin_addr.s_addr, server.h_addr, (size_t)server.h_length);
