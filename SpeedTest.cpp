@@ -353,67 +353,16 @@ std::vector<std::string> SpeedTest::splitString(const std::string &instr, const 
 
 }
 
-ServerInfo SpeedTest::processServerXMLNode(xmlTextReaderPtr reader) {
-
-    auto name = xmlTextReaderConstName(reader);
-    auto nodeName = std::string((char*)name);
-
-    if (!name || nodeName != "server"){
-        return ServerInfo();
-    }
-
-    if (xmlTextReaderAttributeCount(reader) > 0){
-        auto info = ServerInfo();
-        auto server_url         = xmlTextReaderGetAttribute(reader, BAD_CAST "url");
-        auto server_lat         = xmlTextReaderGetAttribute(reader, BAD_CAST "lat");
-        auto server_lon         = xmlTextReaderGetAttribute(reader, BAD_CAST "lon");
-        auto server_name        = xmlTextReaderGetAttribute(reader, BAD_CAST "name");
-        auto server_county      = xmlTextReaderGetAttribute(reader, BAD_CAST "country");
-        auto server_cc          = xmlTextReaderGetAttribute(reader, BAD_CAST "cc");
-        auto server_host        = xmlTextReaderGetAttribute(reader, BAD_CAST "host");
-        auto server_id          = xmlTextReaderGetAttribute(reader, BAD_CAST "id");
-        auto server_sponsor     = xmlTextReaderGetAttribute(reader, BAD_CAST "sponsor");
-
-        if (server_name)
-            info.name.append((char*)server_name);
-
-        if (server_url)
-            info.url.append((char*)server_url);
-
-        if (server_county)
-            info.country.append((char*)server_county);
-
-        if (server_cc)
-            info.country_code.append((char*)server_cc);
-
-        if (server_host)
-            info.host.append((char*)server_host);
-
-        if (server_sponsor)
-            info.sponsor.append((char*)server_sponsor);
-
-        if (server_id)
-            info.id  = std::atoi((char*)server_id);
-
-        if (server_lat)
-            info.lat = std::stof((char*)server_lat);
-
-        if (server_lon)
-            info.lon = std::stof((char*)server_lon);
-
-        xmlFree(server_url);
-        xmlFree(server_lat);
-        xmlFree(server_lon);
-        xmlFree(server_name);
-        xmlFree(server_county);
-        xmlFree(server_cc);
-        xmlFree(server_host);
-        xmlFree(server_id);
-        xmlFree(server_sponsor);
-        return info;
-    }
-
-    return ServerInfo();
+std::string getAttributeValue(const std::string& data, const size_t offset, const size_t max_pos, const std::string& attribute_name) {
+    size_t pos = data.find(attribute_name + "=\"", offset);
+    if (pos == std::string::npos)
+        return "";
+    if (pos >= max_pos)
+        return "";
+    size_t value_pos = pos + attribute_name.length() + 2;
+    size_t end = data.find("\"", value_pos);
+    std::string s = data.substr(pos + attribute_name.length() + 2, end - value_pos);
+    return s;
 }
 
 bool SpeedTest::fetchServers(const std::string& url, std::vector<ServerInfo>& target, int &http_code) {
@@ -441,53 +390,42 @@ bool SpeedTest::fetchServers(const std::string& url, std::vector<ServerInfo>& ta
         http_code = 200;
     }
 
-    size_t len = oss.str().length();
-    auto *xmlbuff = (char*)calloc(len + 1, sizeof(char));
-    if (!xmlbuff){
-        std::cerr << "Unable to calloc" << std::endl;
+    IPInfo ipInfo;
+    if (!SpeedTest::ipInfo(ipInfo)){
         curl_easy_cleanup(curl);
+        std::cerr << "OOPS!" <<std::endl;
         return false;
     }
-    memcpy(xmlbuff, oss.str().c_str(), len);
-    oss.str("");
 
-    xmlTextReaderPtr reader = xmlReaderForMemory(xmlbuff, static_cast<int>(len), nullptr, nullptr, 0);
+    std::string data = oss.str();
 
-    if (reader != nullptr) {
-        IPInfo ipInfo;
-        if (!SpeedTest::ipInfo(ipInfo)){
-            curl_easy_cleanup(curl);
-            free(xmlbuff);
-            xmlFreeTextReader(reader);
-            std::cerr << "OOPS!" <<std::endl;
-            return false;
+    const std::string server_tag_start = "<server ";
+
+    size_t server_tag_begin = data.find(server_tag_start);
+    while (server_tag_begin != std::string::npos) {
+        size_t server_tag_end = data.find("/>", server_tag_begin);
+
+        auto info = ServerInfo();
+        info.name         = getAttributeValue(data, server_tag_begin, server_tag_end, "name");
+        info.url          = getAttributeValue(data, server_tag_begin, server_tag_end, "url");
+        info.country      = getAttributeValue(data, server_tag_begin, server_tag_end, "country");
+        info.country_code = getAttributeValue(data, server_tag_begin, server_tag_end, "cc");
+        info.host         = getAttributeValue(data, server_tag_begin, server_tag_end, "host");
+        info.sponsor      = getAttributeValue(data, server_tag_begin, server_tag_end, "sponsor");
+        info.id           = atoi(getAttributeValue(data, server_tag_begin, server_tag_end, "id").c_str());
+        info.lat          = std::stof(getAttributeValue(data, server_tag_begin, server_tag_end, "lat"));
+        info.lon          = std::stof(getAttributeValue(data, server_tag_begin, server_tag_end, "lon"));
+
+        if (!info.url.empty()){
+            info.distance = harversine(std::make_pair(ipInfo.lat, ipInfo.lon), std::make_pair(info.lat, info.lon));
+            target.push_back(info);
         }
-        auto ret = xmlTextReaderRead(reader);
-        while (ret == 1) {
-            ServerInfo info = processServerXMLNode(reader);
-            if (!info.url.empty()){
-                info.distance = harversine(std::make_pair(ipInfo.lat, ipInfo.lon), std::make_pair(info.lat, info.lon));
-                target.push_back(info);
-            }
-            ret = xmlTextReaderRead(reader);
-        }
-        xmlFreeTextReader(reader);
-        if (ret != 0) {
-            curl_easy_cleanup(curl);
-            free(xmlbuff);
-            std::cerr << "Failed to parse" << std::endl;
-            return false;
-        }
-    } else {
-        std::cerr << "Unable to initialize xml parser" << std::endl;
-        curl_easy_cleanup(curl);
-        free(xmlbuff);
-        return false;
+
+        server_tag_begin = data.find(server_tag_start, server_tag_begin + 1);
     }
+
 
     curl_easy_cleanup(curl);
-    free(xmlbuff);
-    xmlCleanupParser();
     std::sort(target.begin(), target.end(), [](const ServerInfo &a, const ServerInfo &b) -> bool {
         return a.distance < b.distance;
     });
