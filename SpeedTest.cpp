@@ -37,8 +37,10 @@ bool SpeedTest::ipInfo(IPInfo& info) {
         mIpInfo = IPInfo();
         mIpInfo.ip_address = values["ip_address"];
         mIpInfo.isp = values["isp"];
-        mIpInfo.lat = std::stof(values["lat"]);
-        mIpInfo.lon = std::stof(values["lon"]);
+        try {
+            mIpInfo.lat = std::stof(values["lat"]);
+            mIpInfo.lon = std::stof(values["lon"]);
+        } catch(...) {}
         values.clear();
         oss.clear();
         info = mIpInfo;
