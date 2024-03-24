@@ -33,6 +33,7 @@ public:
     CURLcode httpGet(const std::string& url, std::stringstream& os, CURL *handler = nullptr, long timeout = 30);
     CURLcode httpPost(const std::string& url, const std::string& postdata, std::stringstream& os, CURL *handler = nullptr, long timeout = 30);
     static std::map<std::string, std::string> parseQueryString(const std::string& query);
+    static std::map<std::string, std::string> parseJSON(const std::string &data);
     static std::vector<std::string> splitString(const std::string& instr, char separator);
     bool ipInfo(IPInfo& info);
     const std::vector<ServerInfo>& serverList();

@@ -7,6 +7,8 @@
 #include "SpeedTest.h"
 #include "MD5Util.h"
 #include <netdb.h>
+#include "json.h"
+
 
 SpeedTest::SpeedTest(float minServerVersion):
         mLatency(0),
@@ -33,11 +35,11 @@ bool SpeedTest::ipInfo(IPInfo& info) {
     std::stringstream oss;
     auto code = httpGet(SPEED_TEST_IP_INFO_API_URL, oss);
     if (code == CURLE_OK){
-        auto values = SpeedTest::parseQueryString(oss.str());
+        auto values = SpeedTest::parseJSON(oss.str());
         mIpInfo = IPInfo();
-        mIpInfo.ip_address = values["ip_address"];
-        mIpInfo.isp = values["isp"];
         try {
+            mIpInfo.ip_address = values["ip_address"];
+            mIpInfo.isp = values["isp"];
             mIpInfo.lat = std::stof(values["lat"]);
             mIpInfo.lon = std::stof(values["lon"]);
         } catch(...) {}
@@ -333,6 +335,21 @@ std::map<std::string, std::string> SpeedTest::parseQueryString(const std::string
             map[kv[0]] = kv[1];
         }
     }
+    return map;
+}
+
+std::map<std::string, std::string> SpeedTest::parseJSON(const std::string &data) {
+    auto map = std::map<std::string, std::string>();
+    json::JSON obj;
+
+    obj = json::JSON::Load(data);
+    try {
+        map["ip_address"] = (std::ostringstream() << obj["ip"]).str();
+        map["isp"] = (std::ostringstream() << obj["company"]["name"]).str();
+        map["lat"] = (std::ostringstream() << obj["location"]["latitude"]).str();
+        map["lon"] = (std::ostringstream() << obj["location"]["longitude"]).str();
+    } catch(...) {}
+
     return map;
 }
 
