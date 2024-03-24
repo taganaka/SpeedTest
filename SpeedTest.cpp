@@ -344,10 +344,14 @@ std::map<std::string, std::string> SpeedTest::parseJSON(const std::string &data)
 
     obj = json::JSON::Load(data);
     try {
-        map["ip_address"] = (std::ostringstream() << obj["ip"]).str();
-        map["isp"] = (std::ostringstream() << obj["company"]["name"]).str();
-        map["lat"] = (std::ostringstream() << obj["location"]["latitude"]).str();
-        map["lon"] = (std::ostringstream() << obj["location"]["longitude"]).str();
+        map["ip_address"] = static_cast<std::ostringstream &&>
+                ((std::ostringstream() << obj["ip"])).str();
+        map["isp"] = static_cast<std::ostringstream &&>
+                ((std::ostringstream() << obj["company"]["name"])).str();
+        map["lat"] = static_cast<std::ostringstream &&>
+                ((std::ostringstream() << obj["location"]["latitude"])).str();
+        map["lon"] = static_cast<std::ostringstream &&>
+                ((std::ostringstream() << obj["location"]["longitude"])).str();
     } catch(...) {}
 
     return map;

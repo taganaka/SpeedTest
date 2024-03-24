@@ -19,7 +19,7 @@ set (SpeedTest_LATENCY_SAMPLE_SIZE 80)
 
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wno-unused-result")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wno-unused-result -Wno-pessimizing-move -Wno-deprecated-declarations")
 
 set(SOURCE_FILES
         main.cpp
