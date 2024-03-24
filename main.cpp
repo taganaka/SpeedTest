@@ -10,6 +10,7 @@ void banner(){
     std::cout << "SpeedTest++ version " << SpeedTest_VERSION_MAJOR << "." << SpeedTest_VERSION_MINOR << std::endl;
     std::cout << "Speedtest.net command line interface" << std::endl;
     std::cout << "Info: " << SpeedTest_HOME_PAGE << std::endl;
+    std::cout << "Fixed: https://github.com/gglluukk/SpeedTest" << std::endl;
     std::cout << "Author: " << SpeedTest_AUTHOR << std::endl;
 }
 
