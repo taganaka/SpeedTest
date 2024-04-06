@@ -74,8 +74,8 @@ int main(const int argc, const char **argv) {
     }
 
     if (programOptions.output_type == OutputType::verbose){
-        std::cout << "IP: " << info.ip_address
-                  << " (" << info.isp << ") "
+        std::cout << "IP: \"" << info.ip_address << "\""
+                  << " (\"" << info.isp << "\") "
                   << "Location: [" << info.lat << ", " << info.lon << "]" << std::endl;
     } else if (programOptions.output_type == OutputType::text) {
         std::cout << "IP=" << info.ip_address << std::endl;
