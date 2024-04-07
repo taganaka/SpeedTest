@@ -7,6 +7,8 @@
 #include "SpeedTest.h"
 #include "MD5Util.h"
 #include <netdb.h>
+#include "json.h"
+
 
 SpeedTest::SpeedTest(float minServerVersion):
         mLatency(0),
@@ -33,12 +35,14 @@ bool SpeedTest::ipInfo(IPInfo& info) {
     std::stringstream oss;
     auto code = httpGet(SPEED_TEST_IP_INFO_API_URL, oss);
     if (code == CURLE_OK){
-        auto values = SpeedTest::parseQueryString(oss.str());
+        auto values = SpeedTest::parseJSON(oss.str());
         mIpInfo = IPInfo();
-        mIpInfo.ip_address = values["ip_address"];
-        mIpInfo.isp = values["isp"];
-        mIpInfo.lat = std::stof(values["lat"]);
-        mIpInfo.lon = std::stof(values["lon"]);
+        try {
+            mIpInfo.ip_address = values["ip_address"];
+            mIpInfo.isp = values["isp"];
+            mIpInfo.lat = std::stof(values["lat"]);
+            mIpInfo.lon = std::stof(values["lon"]);
+        } catch(...) {}
         values.clear();
         oss.clear();
         info = mIpInfo;
@@ -181,15 +185,11 @@ double SpeedTest::execute(const ServerInfo &server, const TestConfig &config, co
             auto spClient = SpeedTestClient(server);
 
             if (spClient.connect()) {
-                long total_size = 0;
-                long total_time = 0;
                 auto start = std::chrono::steady_clock::now();
                 std::vector<double> partial_results;
                 while (curr_size < max_size){
                     long op_time = 0;
                     if ((spClient.*pfunc)(curr_size, config.buff_size, op_time)) {
-                        total_size += curr_size;
-                        total_time += op_time;
                         double metric = (curr_size * 8) / (static_cast<double>(op_time) / 1000);
                         partial_results.push_back(metric);
                         if (cb)
@@ -331,6 +331,21 @@ std::map<std::string, std::string> SpeedTest::parseQueryString(const std::string
             map[kv[0]] = kv[1];
         }
     }
+    return map;
+}
+
+std::map<std::string, std::string> SpeedTest::parseJSON(const std::string &data) {
+    auto map = std::map<std::string, std::string>();
+    json::JSON obj;
+
+    obj = json::JSON::Load(data);
+    try {
+        map["ip_address"] = obj["ip"].ToString();
+        map["isp"] = obj["company"]["name"].ToString();
+        map["lat"] = obj["location"]["latitude"].dump();
+        map["lon"] = obj["location"]["longitude"].dump();
+    } catch(...) {}
+
     return map;
 }
 

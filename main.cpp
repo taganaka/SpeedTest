@@ -10,6 +10,7 @@ void banner(){
     std::cout << "SpeedTest++ version " << SpeedTest_VERSION_MAJOR << "." << SpeedTest_VERSION_MINOR << std::endl;
     std::cout << "Speedtest.net command line interface" << std::endl;
     std::cout << "Info: " << SpeedTest_HOME_PAGE << std::endl;
+    std::cout << "Fixed: https://github.com/gglluukk/SpeedTest" << std::endl;
     std::cout << "Author: " << SpeedTest_AUTHOR << std::endl;
 }
 
@@ -73,8 +74,8 @@ int main(const int argc, const char **argv) {
     }
 
     if (programOptions.output_type == OutputType::verbose){
-        std::cout << "IP: " << info.ip_address
-                  << " ( " << info.isp << " ) "
+        std::cout << "IP: \"" << info.ip_address << "\""
+                  << " (\"" << info.isp << "\") "
                   << "Location: [" << info.lat << ", " << info.lon << "]" << std::endl;
     } else if (programOptions.output_type == OutputType::text) {
         std::cout << "IP=" << info.ip_address << std::endl;
