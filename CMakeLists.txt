@@ -44,7 +44,6 @@ add_executable(SpeedTest ${SOURCE_FILES})
 
 INCLUDE (CheckIncludeFiles)
 find_package(CURL REQUIRED)
-find_package(LibXml2 REQUIRED)
 
 if (NOT (APPLE))
     find_package(OpenSSL REQUIRED)
@@ -52,7 +51,7 @@ else()
     CHECK_INCLUDE_FILES("CommonCrypto/CommonDigest.h" HAVE_COMMON_DIGEST_H)
 endif()
 
-include_directories(${CURL_INCLUDE_DIRS} ${LIBXML2_INCLUDE_DIR})
-target_link_libraries(SpeedTest ${CURL_LIBRARIES} ${LIBXML2_LIBRARIES} -lpthread ${OPENSSL_LIBRARIES})
+include_directories(${CURL_INCLUDE_DIRS})
+target_link_libraries(SpeedTest ${CURL_LIBRARIES} -lpthread ${OPENSSL_LIBRARIES})
 
 install(TARGETS SpeedTest RUNTIME DESTINATION bin)
