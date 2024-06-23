@@ -26,6 +26,7 @@ void usage(const char* name){
     std::cerr << "  --upload                    Perform upload test only. It includes latency test\n";
     std::cerr << "  --share                     Generate and provide a URL to the speedtest.net share results image\n";
     std::cerr << "  --insecure                  Skip SSL certificate verify (Useful for Embedded devices)\n";
+    std::cerr << "  --list-servers              List available speed test servers\n";
     std::cerr << "  --test-server host:port     Run speed test against a specific server\n";
     std::cerr << "  --quality-server host:port  Run line quality test against a specific server\n";
     std::cerr << "  --output verbose|text|json  Set output type. Default: verbose\n";
@@ -55,6 +56,32 @@ int main(const int argc, const char **argv) {
 
 
     auto sp = SpeedTest(SPEED_TEST_MIN_SERVER_VERSION);
+
+    if (programOptions.list_servers) {
+        if (programOptions.output_type == OutputType::json) {
+            std::cout << "[";
+            const auto &servers = sp.serverList();
+            bool first = true;
+            for (const auto &server : servers) {
+                if (!first) {
+                    std::cout << ",";
+                }
+                std::cout << "{\"id\":\"" << server.id << "\",\"host\":\"" << server.host
+                          << "\",\"country\":\"" << server.country << "\",\"sponsor\":\"" << server.sponsor << "\"}";
+                first = false;
+            }
+            std::cout << "]" << std::endl;
+        } else {
+            const auto &servers = sp.serverList();
+            for (const auto &server : servers) {
+                std::cout << "ID: " << server.id << ", Host: " << server.host
+                          << ", Country: " << server.country << ", Sponsor: " << server.sponsor << std::endl;
+            }
+        }
+
+        return EXIT_SUCCESS;
+    }
+
     IPInfo info;
     ServerInfo serverInfo;
     ServerInfo serverQualityInfo;
